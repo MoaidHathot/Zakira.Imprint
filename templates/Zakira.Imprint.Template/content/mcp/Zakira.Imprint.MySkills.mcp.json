@@ -1,0 +1,9 @@
+{
+  "servers": {
+    "my-skills-mcp-server": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@example/my-mcp-server"]
+    }
+  }
+}

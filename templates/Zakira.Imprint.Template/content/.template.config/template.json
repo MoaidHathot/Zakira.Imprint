@@ -1,0 +1,67 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "Zakira.Imprint",
+  "classifications": ["Imprint", "AI Skills", "NuGet", "Copilot"],
+  "identity": "Zakira.Imprint.Template",
+  "name": "Imprint Skills Package",
+  "shortName": "imprint",
+  "tags": {
+    "language": "C#",
+    "type": "project"
+  },
+  "sourceName": "Imprint.MySkills",
+  "preferNameDirectory": true,
+  "symbols": {
+    "packageId": {
+      "type": "parameter",
+      "datatype": "string",
+      "description": "The NuGet package ID (defaults to project name)",
+      "defaultValue": "Imprint.MySkills",
+      "replaces": "Imprint.MySkills",
+      "fileRename": "Imprint.MySkills"
+    },
+    "author": {
+      "type": "parameter",
+      "datatype": "string",
+      "description": "The package author",
+      "defaultValue": "Your Name",
+      "replaces": "AUTHOR_NAME"
+    },
+    "description": {
+      "type": "parameter",
+      "datatype": "string",
+      "description": "Package description",
+      "defaultValue": "AI Skills for your domain.",
+      "replaces": "PACKAGE_DESCRIPTION"
+    },
+    "version": {
+      "type": "parameter",
+      "datatype": "string",
+      "description": "Initial package version",
+      "defaultValue": "1.0.0",
+      "replaces": "1.0.0-initial"
+    },
+    "prefixForMSBuild": {
+      "type": "generated",
+      "generator": "regex",
+      "parameters": {
+        "source": "packageId",
+        "steps": [
+          {
+            "regex": "\\.",
+            "replacement": "_"
+          }
+        ]
+      },
+      "replaces": "Imprint_MySkills"
+    }
+  },
+  "postActions": [
+    {
+      "description": "Restore NuGet packages",
+      "manualInstructions": [{ "text": "Run 'dotnet restore'" }],
+      "actionId": "210D431B-A78B-4D2F-B762-4ED3E3EA9025",
+      "continueOnError": true
+    }
+  ]
+}

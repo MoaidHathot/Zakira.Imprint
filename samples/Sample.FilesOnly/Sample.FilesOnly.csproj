@@ -1,0 +1,46 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Use netstandard2.0 for maximum compatibility -->
+    <TargetFramework>netstandard2.0</TargetFramework>
+    
+    <!-- Package metadata -->
+    <PackageId>Sample.FilesOnly</PackageId>
+    <Version>1.2.1</Version>
+    <Authors>Your Organization</Authors>
+    <Company>Your Organization</Company>
+    <Description>Sample AI Skills package demonstrating Imprint distribution pattern. Contains example skills for GitHub Copilot and other AI assistants.</Description>
+    <PackageTags>ai;skills;copilot;github-copilot;imprint</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    
+    <!-- This is a development/tooling package - no runtime dependency needed -->
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <SuppressDependenciesWhenPacking>false</SuppressDependenciesWhenPacking>
+    <DevelopmentDependency>true</DevelopmentDependency>
+    
+    <!-- Suppress warning about no lib folder (we intentionally have no compiled output) -->
+    <NoPackageAnalysis>true</NoPackageAnalysis>
+    <NoWarn>$(NoWarn);NU5128</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Include MSBuild targets (this is the magic that makes it work) -->
+    <None Include="build\**" Pack="true" PackagePath="build" />
+    
+    <!-- Include all skill files (any type) -->
+    <None Include="skills\**\*" Pack="true" PackagePath="skills" />
+    
+    <!-- Include package README -->
+    <None Include="README.md" Pack="true" PackagePath="" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Zakira.Imprint.Sdk provides the copy/clean/MCP-merge logic.
+         PrivateAssets excludes compile (no runtime dep) but allows build targets to flow to consumers. -->
+    <PackageReference Include="Zakira.Imprint.Sdk" Version="1.2.1">
+      <PrivateAssets>compile</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+
+</Project>

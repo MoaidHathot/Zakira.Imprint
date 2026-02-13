@@ -1,0 +1,25 @@
+<Project>
+  <!--
+    Sample.FilesOnly - MSBuild Targets
+    
+    This file is automatically imported when the NuGet package is installed.
+    It declares ImprintContent items that the Zakira.Imprint.Sdk tasks will copy
+    to the consumer's project at build time.
+  -->
+
+  <PropertyGroup>
+    <_Imprint_SampleFilesOnly_Root>$(MSBuildThisFileDirectory)..\</_Imprint_SampleFilesOnly_Root>
+  </PropertyGroup>
+
+  <!-- Skill files to copy (handled by Zakira.Imprint.Sdk's ImprintCopyContent task) -->
+  <ItemGroup>
+    <ImprintContent Include="$(_Imprint_SampleFilesOnly_Root)skills\**\*">
+      <DestinationBase>$(ImprintSkillsPath)</DestinationBase>
+      <PackageId>Sample.FilesOnly</PackageId>
+      <SourceBase>$(_Imprint_SampleFilesOnly_Root)skills\</SourceBase>
+      <!-- Author's suggested prefix for this package's skills -->
+      <SuggestedPrefix>SampleFilesOnly</SuggestedPrefix>
+    </ImprintContent>
+  </ItemGroup>
+
+</Project>

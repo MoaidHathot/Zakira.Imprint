@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <PackageId>Zakira.Imprint.MySkills</PackageId>
+    <Version>1.0.0-initial</Version>
+    <Authors>AUTHOR_NAME</Authors>
+    <Description>PACKAGE_DESCRIPTION</Description>
+    <PackageTags>imprint;ai-skills;copilot</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    
+    <!-- This is a tools-only package - no runtime output -->
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <SuppressDependenciesWhenPacking>false</SuppressDependenciesWhenPacking>
+    <DevelopmentDependency>true</DevelopmentDependency>
+    <NoPackageAnalysis>true</NoPackageAnalysis>
+    
+    <!-- Suppress warnings about no lib/ref assemblies -->
+    <NoWarn>$(NoWarn);NU5128</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Include the MSBuild targets -->
+    <None Include="build\**" Pack="true" PackagePath="build" />
+    
+    <!-- Include all skill files (any type) -->
+    <None Include="skills\**\*" Pack="true" PackagePath="skills" />
+    
+    <!-- Include MCP server fragment files -->
+    <None Include="mcp\**" Pack="true" PackagePath="mcp" />
+    
+    <!-- Include package readme -->
+    <None Include="README.md" Pack="true" PackagePath="" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Zakira.Imprint.Sdk provides all build-time logic (content copy, MCP merge, manifests).
+         PrivateAssets excludes compile (no runtime dep) but allows build targets to flow to consumers. -->
+    <PackageReference Include="Zakira.Imprint.Sdk" Version="1.1.0">
+      <PrivateAssets>compile</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+</Project>

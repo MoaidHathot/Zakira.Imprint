@@ -1,0 +1,28 @@
+<Project>
+  <!--
+    Zakira.Imprint.MySkills - MSBuild Targets
+    
+    This file is automatically imported when the NuGet package is installed.
+    It declares ImprintContent items that the Zakira.Imprint.Sdk tasks will copy
+    to the consumer's project at build time.
+  -->
+
+  <PropertyGroup>
+    <_Imprint_MySkills_Root>$(MSBuildThisFileDirectory)..\</_Imprint_MySkills_Root>
+  </PropertyGroup>
+
+  <!-- Skill files to copy (handled by Zakira.Imprint.Sdk's ImprintCopyContent task) -->
+  <ItemGroup>
+    <ImprintContent Include="$(_Imprint_MySkills_Root)skills\**\*">
+      <DestinationBase>$(ImprintSkillsPath)</DestinationBase>
+      <PackageId>Zakira.Imprint.MySkills</PackageId>
+      <SourceBase>$(_Imprint_MySkills_Root)skills\</SourceBase>
+    </ImprintContent>
+  </ItemGroup>
+
+  <!-- MCP server fragments (handled by Zakira.Imprint.Sdk's ImprintMergeMcpServers task) -->
+  <ItemGroup>
+    <ImprintMcpFragment Include="$(_Imprint_MySkills_Root)mcp\*.mcp.json" />
+  </ItemGroup>
+
+</Project>

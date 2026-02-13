@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Distributing AI Skills via NuGet &ndash; Moaid Hathot</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Roboto:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+  <style>
+    /* ── Reset & Base ─────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Roboto', Arial, sans-serif;
+      font-size: 17px;
+      line-height: 1.75;
+      color: #333;
+      background: #f5f5f5;
+    }
+
+    a { color: #0073aa; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ── Layout Shell ─────────────────────────────────────── */
+    .site-wrapper {
+      display: flex;
+      max-width: 1200px;
+      margin: 0 auto;
+      min-height: 100vh;
+    }
+
+    /* ── Sidebar ──────────────────────────────────────────── */
+    .sidebar {
+      width: 280px;
+      flex-shrink: 0;
+      background: #2c3e50;
+      color: #ccd6dd;
+      padding: 48px 28px 32px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    .sidebar .avatar {
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      background: #3d566e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 52px;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 18px;
+      letter-spacing: 1px;
+    }
+
+    .sidebar .site-title {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 4px;
+      text-align: center;
+    }
+
+    .sidebar .site-tagline {
+      font-size: 13px;
+      color: #9ab;
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .sidebar nav a {
+      display: block;
+      color: #ccd6dd;
+      padding: 6px 0;
+      font-size: 15px;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+
+    .sidebar nav a:hover { color: #fff; text-decoration: none; }
+
+    .sidebar .social {
+      margin-top: auto;
+      padding-top: 24px;
+      display: flex;
+      gap: 16px;
+    }
+
+    .sidebar .social a {
+      color: #9ab;
+      font-size: 14px;
+    }
+
+    .sidebar .social a:hover { color: #fff; }
+
+    /* ── Main Content ─────────────────────────────────────── */
+    .main {
+      flex: 1;
+      background: #fff;
+      padding: 48px 56px 64px;
+      min-width: 0;
+    }
+
+    /* ── Post Header ──────────────────────────────────────── */
+    .post-header { margin-bottom: 36px; }
+
+    .post-title {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 34px;
+      font-weight: 700;
+      line-height: 1.25;
+      color: #222;
+      margin-bottom: 12px;
+    }
+
+    .post-meta {
+      font-size: 14px;
+      color: #888;
+      margin-bottom: 12px;
+    }
+
+    .post-meta .sep { margin: 0 6px; }
+
+    .post-categories a {
+      display: inline-block;
+      background: #ecf0f0;
+      color: #555;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      padding: 3px 10px;
+      border-radius: 3px;
+      margin-right: 6px;
+    }
+
+    .post-categories a:hover { background: #dde4e4; text-decoration: none; }
+
+    /* ── Entry Content ─────────────────────────────────────── */
+    .entry-content {
+      max-width: 800px;
+      text-align: left;
+    }
+
+    .entry-content h2 {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 26px;
+      font-weight: 700;
+      color: #222;
+      margin: 42px 0 16px;
+      line-height: 1.3;
+    }
+
+    .entry-content h3 {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: #333;
+      margin: 32px 0 12px;
+      line-height: 1.35;
+    }
+
+    .entry-content p { margin-bottom: 18px; }
+
+    .entry-content strong { font-weight: 700; }
+
+    .entry-content ul, .entry-content ol {
+      margin: 0 0 18px 28px;
+    }
+
+    .entry-content li { margin-bottom: 6px; }
+
+    .entry-content blockquote {
+      border-left: 4px solid #0073aa;
+      padding: 12px 20px;
+      margin: 24px 0;
+      background: #f8fafc;
+      color: #555;
+      font-style: italic;
+    }
+
+    /* ── Code Blocks ──────────────────────────────────────── */
+    .entry-content pre {
+      margin: 20px 0 24px;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .entry-content pre code {
+      font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+    }
+
+    .entry-content code:not([class*="language-"]) {
+      background: #f0f3f5;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 0.92em;
+      font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+      color: #c0392b;
+    }
+
+    /* ── Architecture Diagram (ASCII) ─────────────────────── */
+    .entry-content pre.diagram {
+      background: #f8fafc;
+      color: #333;
+      border: 1px solid #e0e6ea;
+      padding: 18px 22px;
+      font-size: 13.5px;
+    }
+
+    /* ── Table ─────────────────────────────────────────────── */
+    .entry-content table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0 24px;
+      font-size: 15px;
+    }
+
+    .entry-content th, .entry-content td {
+      text-align: left;
+      padding: 10px 14px;
+      border-bottom: 1px solid #e0e6ea;
+    }
+
+    .entry-content th {
+      background: #f0f3f5;
+      font-weight: 700;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: .4px;
+      color: #555;
+    }
+
+    /* ── Post Footer ──────────────────────────────────────── */
+    .post-footer {
+      margin-top: 48px;
+      padding-top: 24px;
+      border-top: 1px solid #e0e6ea;
+    }
+
+    .post-footer .tags span {
+      display: inline-block;
+      background: #ecf0f0;
+      color: #555;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      padding: 3px 10px;
+      border-radius: 3px;
+      margin-right: 6px;
+      margin-bottom: 6px;
+    }
+
+    .post-footer .author-note {
+      margin-top: 28px;
+      font-size: 15px;
+      color: #666;
+      font-style: italic;
+    }
+
+    .post-footer .author-note a { font-style: normal; }
+
+    /* ── Responsive ───────────────────────────────────────── */
+    @media (max-width: 900px) {
+      .site-wrapper { flex-direction: column; }
+
+      .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+        flex-direction: row;
+        flex-wrap: wrap;
+        padding: 20px 24px;
+        gap: 12px;
+        justify-content: center;
+      }
+
+      .sidebar .avatar { width: 64px; height: 64px; font-size: 24px; margin-bottom: 0; }
+      .sidebar .site-title { font-size: 18px; margin-bottom: 0; }
+      .sidebar .site-tagline { margin-bottom: 0; }
+      .sidebar nav { display: flex; gap: 14px; width: 100%; justify-content: center; }
+      .sidebar nav a { border: none; padding: 4px 0; }
+      .sidebar .social { margin-top: 0; padding-top: 0; }
+
+      .main { padding: 28px 20px 40px; }
+      .post-title { font-size: 26px; }
+      .entry-content h2 { font-size: 22px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="site-wrapper">
+
+  <!-- ── Sidebar ──────────────────────────────────────────── -->
+  <aside class="sidebar">
+    <div class="avatar">MH</div>
+    <div class="site-title">Moaid Hathot</div>
+    <div class="site-tagline">Software, Systems &amp; Curiosity</div>
+    <nav>
+      <a href="https://moaid.codes/">Home</a>
+      <a href="https://moaid.codes/blog/">Blog</a>
+      <a href="https://moaid.codes/about/">About</a>
+    </nav>
+    <div class="social">
+      <a href="https://twitter.com/MoaidHathot">Twitter</a>
+      <a href="https://github.com/MoaidHathot">GitHub</a>
+      <a href="https://www.linkedin.com/in/moaidhathot/">LinkedIn</a>
+    </div>
+  </aside>
+
+  <!-- ── Main Content ─────────────────────────────────────── -->
+  <main class="main">
+
+    <article class="post">
+
+      <!-- Post Header -->
+      <header class="post-header">
+        <h1 class="post-title">Distributing AI Skills and Custom Instructions via NuGet</h1>
+        <div class="post-meta">
+          <time datetime="2025-02-11">February 11, 2025</time>
+          <span class="sep">&middot;</span>
+          14 min read
+        </div>
+        <div class="post-categories">
+          <a href="#">.NET</a>
+          <a href="#">AI</a>
+          <a href="#">NuGet</a>
+          <a href="#">MSBuild</a>
+          <a href="#">Tooling</a>
+        </div>
+      </header>
+
+      <!-- Entry Content -->
+      <div class="entry-content">
+
+        <p>As developers, we are always looking for ways to share knowledge and improve productivity. With the rise of AI coding assistants like GitHub Copilot, Claude, and others, a new category of files has emerged: Skills, <code>AGENTS.MD</code>, custom instructions, and other AI-related configuration files. These files help AI agents understand our codebase, our patterns, and our preferences.</p>
+
+        <p>A few weeks ago, I found myself in a situation where I needed to share a set of Skills and custom instructions between multiple projects. I was also working on an internal library that LLMs simply did not know about &mdash; and I needed a way to teach them.</p>
+
+        <h2>The Problem</h2>
+
+        <p>It all started with a simple requirement: I wanted to share a set of AI Skills across multiple projects. At first, I was manually copying files between repositories. This worked fine for a while, but it quickly became a maintenance burden. Every time I updated a skill, I had to remember which projects were using it and manually update each one.</p>
+
+        <p>On top of that, I was developing an internal library. LLMs do not have training data for internal libraries (obviously), and while they can sometimes decompile and understand APIs, they often miss the bigger picture &mdash; the <em>why</em> behind the library, the common patterns, the pitfalls to avoid, and the best practices.</p>
+
+        <p>Sure, if the documentation exists somewhere, you can sometimes point the AI to it. But internal documentation is often not indexed by AI assistants, and even if it is, the AI might not know where to look. This is especially true for proprietary libraries, where decompiling the code can help with understanding the API surface, but not with the broader context.</p>
+
+        <h3>What if I Could Ship AI Skills with the Library Itself?</h3>
+
+        <p>This is when I had the idea: what if library authors could ship Skills, custom instructions, or even <code>AGENTS.MD</code> files alongside their NuGet packages? This way, when you install a library, the AI assistant would automatically get the context it needs to use that library correctly.</p>
+
+        <p>This is not a new concept. We have been doing something similar with <strong>Roslyn Analyzers</strong> for years &mdash; you install a NuGet package, and you get code analysis rules that guide your coding. Why not do the same for AI assistants?</p>
+
+        <h2>Enter Imprint</h2>
+
+        <p>Imprint is a pattern (and a set of packages) that enables distributing AI Skills via NuGet. The concept is simple:</p>
+
+        <ol>
+          <li>Package your AI Skills (markdown files, custom instructions, scripts, and any other files) as a NuGet package</li>
+          <li>When someone adds your package to their project, the skills are automatically copied to the right locations</li>
+          <li>When the package is updated, the skills are updated on the next build</li>
+          <li>When the package is removed and the project is cleaned, the skills are removed</li>
+        </ol>
+
+        <p>This approach brings several benefits that I have found invaluable.</p>
+
+        <h3>Easy to Ship</h3>
+
+        <p>Instead of manually copying files or maintaining shared repositories, you just pack your skills into a NuGet package. Anyone who wants to use them just adds a package reference:</p>
+
+<pre><code class="language-bash">dotnet add package Zakira.Imprint.AzureBestPractices
+dotnet build</code></pre>
+
+        <p>That is it. The skills are now installed and ready for AI assistants to use.</p>
+
+        <h3>Easy to Update</h3>
+
+        <p>When you publish a new version of your skills package, consumers just need to update their package reference. The MSBuild targets detect the version change and automatically replace the old skills with the new ones:</p>
+
+<pre><code class="language-bash">dotnet add package Zakira.Imprint.AzureBestPractices --version 2.0.0
+dotnet build
+# Skills are automatically updated!</code></pre>
+
+        <p>No more &ldquo;did you remember to copy the new skills?&rdquo; conversations.</p>
+
+        <h3>Library Authors Can Teach AI About Their Libraries</h3>
+
+        <p>This is the part I am most excited about. If you are authoring a library &mdash; whether internal or public &mdash; you can now ship AI instructions alongside it. Your users install your library, and their AI assistant immediately knows:</p>
+
+        <ul>
+          <li>How to use your APIs correctly</li>
+          <li>Common patterns and best practices</li>
+          <li>Pitfalls to avoid</li>
+          <li>Migration guides between versions</li>
+        </ul>
+
+        <p>For internal libraries where LLMs have no training data, this is a game changer. Instead of the AI guessing (often incorrectly) how to use your library, it gets explicit guidance directly from the library authors.</p>
+
+        <h3>No Code Changes Required</h3>
+
+        <p>Here is the nice part: a shared <code>.gitignore</code> is automatically generated at the root of the skills tracking folder. No manual <code>.gitignore</code> configuration is needed.</p>
+
+        <p>This means:</p>
+        <ul>
+          <li>No code changes to commit</li>
+          <li>Skills are regenerated on every build</li>
+          <li>Different developers can have different skill packages installed</li>
+          <li>CI/CD environments get fresh skills on every build</li>
+        </ul>
+
+        <h2>How It Works</h2>
+
+        <p>The mechanism is similar to how Roslyn Analyzers are distributed. Let me break it down.</p>
+
+        <h3>The Architecture: Zakira.Imprint.Sdk</h3>
+
+        <p>At the heart of Imprint is a shared engine package called <strong>Zakira.Imprint.Sdk</strong>. This package contains compiled MSBuild tasks that handle all the heavy lifting: copying skill files, managing manifests, merging MCP configurations, and cleaning up. Individual skill packages do not duplicate any of this logic &mdash; they simply declare what content they ship, and the SDK handles the rest.</p>
+
+<pre class="diagram"><code>&#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;  &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;
+&#9474;  Zakira.Imprint.Sample     &#9474;  &#9474;  Zakira.Imprint.AzureBestPractices  &#9474;
+&#9474;  (skills-only)             &#9474;  &#9474;  (skills-only)                      &#9474;
+&#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9516;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;  &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9516;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;
+       &#9474;                                &#9474;
+       &#9474;   &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;
+       &#9474;   &#9474;  Zakira.Imprint.Sample.WithCode       &#9474;
+       &#9474;   &#9474;  (DLL + skills)                       &#9474;
+       &#9474;   &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9516;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;
+       &#9474;          &#9474;
+       &#9660;          &#9660;
+&#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;
+&#9474;  Zakira.Imprint.Sdk               &#9474;
+&#9474;  (MSBuild tasks: copy,           &#9474;
+&#9474;   clean, MCP merge/clean,        &#9474;
+&#9474;   multi-agent resolution)        &#9474;
+&#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;</code></pre>
+
+        <h3>The Package Structure</h3>
+
+        <p>An Imprint package contains:</p>
+        <ul>
+          <li><code>build/{PackageId}.targets</code> &mdash; Declares content items (skills and MCP fragments)</li>
+          <li><code>skills/**/*</code> &mdash; The actual skill files (any file type, preserving folder structure)</li>
+          <li><code>mcp/{PackageId}.mcp.json</code> &mdash; Optional MCP server fragment</li>
+        </ul>
+
+        <p>The package also takes a dependency on <code>Zakira.Imprint.Sdk</code>, which provides the MSBuild tasks that process these declarations.</p>
+
+        <h3>How Packages Declare Content</h3>
+
+        <p>Each skill package&rsquo;s <code>.targets</code> file is minimal &mdash; typically around 25 lines. It declares two kinds of items:</p>
+
+<pre><code class="language-xml">&lt;Project&gt;
+  &lt;PropertyGroup&gt;
+    &lt;_Imprint_MyPkg_Root&gt;$(MSBuildThisFileDirectory)..\..\&lt;/_Imprint_MyPkg_Root&gt;
+  &lt;/PropertyGroup&gt;
+
+  &lt;!-- Skill files to copy --&gt;
+  &lt;ItemGroup&gt;
+    &lt;ImprintContent Include="$(_Imprint_MyPkg_Root)skills\**\*"&gt;
+      &lt;PackageId&gt;Zakira.Imprint.MyPkg&lt;/PackageId&gt;
+      &lt;SourceBase&gt;$(_Imprint_MyPkg_Root)skills\&lt;/SourceBase&gt;
+    &lt;/ImprintContent&gt;
+  &lt;/ItemGroup&gt;
+
+  &lt;!-- MCP server fragments --&gt;
+  &lt;ItemGroup&gt;
+    &lt;ImprintMcpFragment Include="$(_Imprint_MyPkg_Root)mcp\*.mcp.json" /&gt;
+  &lt;/ItemGroup&gt;
+&lt;/Project&gt;</code></pre>
+
+        <p>The <code>Zakira.Imprint.Sdk</code> targets then process all <code>ImprintContent</code> and <code>ImprintMcpFragment</code> items across all installed packages.</p>
+
+        <h3>Target Execution</h3>
+
+        <p>The SDK hooks into the build lifecycle with four targets:</p>
+
+        <ul>
+          <li><strong>Imprint_CopyContent</strong> (BeforeTargets=&ldquo;BeforeBuild&rdquo;) &mdash; Copies all declared skill files, writes per-package manifests, creates <code>.gitignore</code></li>
+          <li><strong>Imprint_CleanContent</strong> (AfterTargets=&ldquo;Clean&rdquo;) &mdash; Reads manifests, deletes only tracked files, removes empty directories</li>
+          <li><strong>Imprint_MergeMcp</strong> (BeforeTargets=&ldquo;BeforeBuild&rdquo;) &mdash; Merges all MCP fragments into each agent&rsquo;s <code>mcp.json</code></li>
+          <li><strong>Imprint_CleanMcp</strong> (AfterTargets=&ldquo;Clean&rdquo;) &mdash; Removes managed MCP servers, preserves user-defined ones</li>
+        </ul>
+
+        <p>Skills are copied <strong>before every build</strong>, skipping IDE design-time builds for performance. A shared <code>.gitignore</code> prevents managed files from being committed. On <code>dotnet clean</code>, only the specific files from each package are removed.</p>
+
+        <h2>MCP Server Injection: Beyond Skills</h2>
+
+        <p>After building the skills distribution, I realized there was another piece of the puzzle missing. Modern AI assistants do not just consume static files &mdash; they connect to <strong>MCP (Model Context Protocol) servers</strong> that provide dynamic tools, resources, and prompts. VS Code discovers these servers through a <code>.vscode/mcp.json</code> file.</p>
+
+        <p>What if an Imprint package could also configure MCP servers? Instead of asking users to manually edit their <code>mcp.json</code>, the package would inject the right server configuration at build time.</p>
+
+        <h3>How MCP Injection Works</h3>
+
+        <p>The approach follows the same philosophy as skills distribution: install a package, build, and everything is configured for you.</p>
+
+        <p>Each Imprint package that ships an MCP server includes a <strong>fragment file</strong> &mdash; a small JSON file containing its server definitions:</p>
+
+<pre><code class="language-json">{
+  "servers": {
+    "azure-mcp-server": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@anthropic-ai/azure-mcp-server"]
+    }
+  }
+}</code></pre>
+
+        <p>At build time, the <code>Zakira.Imprint.Sdk</code> engine collects all fragment files from installed packages and merges them into the appropriate <code>mcp.json</code>. The result is a single file that each AI agent reads to discover all available MCP servers.</p>
+
+        <h3>The Hard Part: Not Breaking User Configuration</h3>
+
+        <p>The tricky part is not the merge itself &mdash; it is knowing what to keep and what to remove. Users might have their own servers defined in <code>mcp.json</code>. If an Imprint package is removed, only its servers should be cleaned up. Other servers, including user-defined ones, must survive.</p>
+
+        <p>To solve this, I introduced a <strong>manifest file</strong> that tracks which server keys are managed by Imprint. The manifest is automatically gitignored, while <code>mcp.json</code> itself can be committed to source control.</p>
+
+        <p>The manifest approach is better than the alternative I considered &mdash; using naming conventions like <code>imprint-auto-*</code> prefixes on server keys. With a manifest, packages can use natural names like <code>azure-mcp-server</code> instead of <code>imprint-auto-azure-mcp-server</code>.</p>
+
+        <h3>Idempotent and Safe</h3>
+
+        <p>The merge logic is idempotent: if nothing changed since the last build, <code>mcp.json</code> is not rewritten. This means no unnecessary git diffs. On <code>dotnet clean</code>, only managed servers are removed. If the file has no remaining content after cleanup, it is deleted entirely.</p>
+
+        <p>Top-level properties like <code>"inputs"</code> (used by VS Code for secret prompts) are preserved through all operations. Your hand-crafted configuration is never touched.</p>
+
+        <h3>A Compiled MSBuild Task</h3>
+
+        <p>One technical challenge worth mentioning: I initially tried to implement the merge logic as an inline C# task using <code>RoslynCodeTaskFactory</code>. It turns out this approach cannot reference <code>System.Text.Json</code>, which is needed for proper JSON merging. The solution was to create compiled MSBuild task DLLs. All tasks &mdash; content copying, cleaning, MCP merging, and MCP cleaning &mdash; live in a single shared package called <code>Zakira.Imprint.Sdk</code>.</p>
+
+        <h2>Multi-Agent Support: Beyond Copilot</h2>
+
+        <p>The initial version of Imprint targeted only GitHub Copilot, placing skills in <code>.github/skills/</code> and MCP configs in <code>.vscode/mcp.json</code>. But AI assistants are not a monoculture. Teams use Claude, Cursor, and increasingly other tools alongside Copilot. Maintaining separate skill files for each agent is the same copy-paste problem Imprint was built to solve.</p>
+
+        <p>With v1.1.0, Imprint gained multi-agent support. A single NuGet package now distributes skills and MCP configurations to <strong>every AI agent simultaneously</strong>, placing files in each agent&rsquo;s native directory structure.</p>
+
+        <h3>How It Works</h3>
+
+        <p>Each AI agent has its own conventions for where it looks for skills and MCP configurations:</p>
+
+        <table>
+          <thead>
+            <tr><th>Agent</th><th>Skills Path</th><th>MCP Path</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Copilot</td><td><code>.github/skills/</code></td><td><code>.vscode/mcp.json</code></td></tr>
+            <tr><td>Claude</td><td><code>.claude/skills/</code></td><td><code>.claude/mcp.json</code></td></tr>
+            <tr><td>Cursor</td><td><code>.cursor/rules/</code></td><td><code>.cursor/mcp.json</code></td></tr>
+          </tbody>
+        </table>
+
+        <p>Imprint auto-detects which agents you use by scanning for their configuration directories. If <code>.github/</code> and <code>.claude/</code> both exist, Imprint targets both. The same skill content is copied to each agent&rsquo;s native location, and MCP server configs are merged into each agent&rsquo;s <code>mcp.json</code>.</p>
+
+        <h3>Zero Configuration Required</h3>
+
+        <p>The default behavior is auto-detection. You do not need to change anything &mdash; Imprint looks for <code>.github/</code>, <code>.claude/</code>, and <code>.cursor/</code> directories at build time and targets whichever agents are present. If none are detected, it falls back to Copilot as the default.</p>
+
+        <p>If you want explicit control, set a single MSBuild property:</p>
+
+<pre><code class="language-xml">&lt;PropertyGroup&gt;
+  &lt;ImprintTargetAgents&gt;claude;cursor&lt;/ImprintTargetAgents&gt;
+&lt;/PropertyGroup&gt;</code></pre>
+
+        <h3>Package Authors Get It for Free</h3>
+
+        <p>The multi-agent support is entirely in <code>Zakira.Imprint.Sdk</code>. Package authors do not need to change their <code>.targets</code> files, their skill content, or their MCP fragments. The same ~25-line <code>.targets</code> file that worked with v1.0.0 now automatically distributes to every agent the consumer has configured. All the package author needs to do is update their SDK reference to 1.1.0.</p>
+
+        <h2>Two Package Patterns</h2>
+
+        <p>Imprint supports two patterns for package authors:</p>
+
+        <h3>Skills-Only Packages</h3>
+
+        <p>These packages ship only AI skills and MCP configurations &mdash; no compiled library code. They are development-time dependencies that leave no trace in the consumer&rsquo;s build output:</p>
+
+<pre><code class="language-xml">&lt;IncludeBuildOutput&gt;false&lt;/IncludeBuildOutput&gt;
+&lt;DevelopmentDependency&gt;true&lt;/DevelopmentDependency&gt;</code></pre>
+
+        <p>Example: <code>Zakira.Imprint.AzureBestPractices</code> ships Azure security skills without any runtime DLL.</p>
+
+        <h3>Library + Skills Packages</h3>
+
+        <p>These packages ship a compiled DLL <strong>and</strong> AI skills. The DLL is a real runtime dependency, while the skills teach AI assistants how to use the library correctly.</p>
+
+        <p>This is the pattern I am most excited about for internal libraries. Your consumers get the library and the AI guidance in a single <code>dotnet add package</code>.</p>
+
+        <h2>Creating Your Own Imprint Package</h2>
+
+        <p>If you want to create your own skills package, the easiest way is to use the template:</p>
+
+<pre><code class="language-bash"># Install the template
+dotnet new install Zakira.Imprint.Template
+
+# Create a new package
+dotnet new imprint -n MyOrg.CodingStandards
+
+# Add your skills to the skills/ folder
+# Then pack and publish
+dotnet pack</code></pre>
+
+        <p>The template generates the project structure, <code>.targets</code> file, and a sample skill &mdash; you just need to replace the placeholder content with your actual skills.</p>
+
+        <p>For manual setup or the full package structure, check the <a href="https://github.com/MoaidHathot/SkillsViaNuget">GitHub repository</a>.</p>
+
+        <h2>Use Cases</h2>
+
+        <p>I have found this pattern useful for several scenarios:</p>
+
+        <p><strong>Organization-wide Standards.</strong> Package your company&rsquo;s coding standards, security guidelines, and architectural patterns as skills. Every project that references the package gets consistent guidance.</p>
+
+        <p><strong>Framework Best Practices.</strong> Create a package with best practices for specific frameworks. For example, <code>Zakira.Imprint.AzureBestPractices</code> includes guidance on Azure SDK usage, resource naming, and security patterns.</p>
+
+        <p><strong>Internal Library Documentation.</strong> Ship your internal library with skills that teach AI how to use it. With the library + skills pattern, your consumers get the DLL and the AI guidance in a single package install. This is especially valuable for complex libraries with non-obvious usage patterns.</p>
+
+        <p><strong>MCP Server Distribution.</strong> Ship MCP server configurations alongside your skills. Consumers get both static knowledge (skills) and dynamic tooling (MCP servers) from a single NuGet package install.</p>
+
+        <p><strong>Team Knowledge Sharing.</strong> Package tribal knowledge that would otherwise live in wiki pages or developers&rsquo; heads. Make it available to AI assistants so they can help new team members.</p>
+
+        <h2>Finding the Right Balance</h2>
+
+        <p>One concern I had when designing this was overcrowding. What if every NuGet package starts shipping AI skills? Your skills folder could become cluttered with files you do not need.</p>
+
+        <p>The solution is simple: these are development dependencies. They are marked as <code>PrivateAssets="all"</code> in the package reference, meaning they do not flow to downstream projects. And since a shared <code>.gitignore</code> is placed at the skills root, they do not bloat your repository.</p>
+
+        <p>For library authors, I would recommend being intentional about what you include. Ship skills that genuinely help users of your library. Do not include generic programming advice that AI already knows.</p>
+
+        <h2>Summary</h2>
+
+        <p>Distributing AI Skills via NuGet is a natural extension of how we already distribute tools like Roslyn Analyzers. With MCP Server Injection and multi-agent support, a single NuGet package can now deliver both static knowledge and dynamic tool configurations to every AI assistant your team uses. It solves real problems:</p>
+
+        <ul>
+          <li>No more copying files between projects</li>
+          <li>Easy updates through package versioning</li>
+          <li>Library authors can teach AI about their libraries</li>
+          <li>MCP servers are configured automatically &mdash; no manual <code>mcp.json</code> editing</li>
+          <li>No code changes or repository bloat</li>
+          <li>One package, every AI agent &mdash; Copilot, Claude, Cursor, and more</li>
+        </ul>
+
+        <p>The pattern is simple, it builds on existing NuGet and MSBuild infrastructure, and it just works.</p>
+
+        <p>If you maintain an internal library, consider adding AI skills to help users get started. If you have organization-wide standards, package them up. The barrier to entry is low, and the benefits compound as more people adopt the pattern.</p>
+
+        <p>You can find the complete source code and examples on <a href="https://github.com/MoaidHathot/SkillsViaNuget">GitHub</a>.</p>
+
+      </div>
+      <!-- /entry-content -->
+
+      <!-- Post Footer -->
+      <footer class="post-footer">
+        <div class="tags">
+          <span>NuGet</span>
+          <span>MSBuild</span>
+          <span>AI Skills</span>
+          <span>GitHub Copilot</span>
+          <span>Claude</span>
+          <span>Cursor</span>
+          <span>MCP</span>
+          <span>.NET</span>
+          <span>Tooling</span>
+        </div>
+        <p class="author-note">
+          Have questions or ideas for improvement? I would love to hear them. Find me on
+          <a href="https://twitter.com/MoaidHathot">Twitter</a> or
+          <a href="https://github.com/MoaidHathot">GitHub</a>.
+        </p>
+      </footer>
+
+    </article>
+
+  </main>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-xml-doc.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-csharp.min.js"></script>
+
+</body>
+</html>

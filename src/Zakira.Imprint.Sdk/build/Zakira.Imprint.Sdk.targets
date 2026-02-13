@@ -1,0 +1,144 @@
+<Project>
+  <!--
+    Zakira.Imprint.Sdk - MSBuild Targets
+    
+    This file provides the core build-time logic for all Imprint packages:
+    1. ImprintCopyContent - copies skill/prompt files from packages to consumer project
+    2. ImprintCleanContent - removes copied files on dotnet clean
+    3. ImprintMergeMcpServers - merges MCP server fragments into .vscode/mcp.json
+    4. ImprintCleanMcpServers - removes managed MCP servers on dotnet clean
+    
+    Skill packages contribute items via:
+    - <ImprintContent> items with DestinationBase, PackageId, and SourceBase metadata
+    - <ImprintMcpFragment> items pointing to .mcp.json fragment files
+    
+    Consumer configuration via properties:
+    - ImprintPrefixSkills: Global default for whether to prefix skill folders (default: false)
+    - ImprintDefaultPrefix: Global default prefix when prefixing is enabled
+    
+    Consumer configuration via PackageReference metadata:
+    - ImprintPrefix: Custom prefix for this package's skills
+    - ImprintUsePrefix: Override global ImprintPrefixSkills for this package (true/false)
+    - ImprintEnabled: Disable this package's skills entirely (false to disable)
+  -->
+
+  <!-- Default property values -->
+  <PropertyGroup>
+    <ImprintPrefixSkills Condition="'$(ImprintPrefixSkills)' == ''">false</ImprintPrefixSkills>
+    <ImprintDefaultPrefix Condition="'$(ImprintDefaultPrefix)' == ''"></ImprintDefaultPrefix>
+  </PropertyGroup>
+
+  <!-- Register compiled task assemblies -->
+  <UsingTask TaskName="Zakira.Imprint.Sdk.ImprintCopyContent"
+             AssemblyFile="$(MSBuildThisFileDirectory)net8.0\Zakira.Imprint.Sdk.dll" />
+
+  <UsingTask TaskName="Zakira.Imprint.Sdk.ImprintCleanContent"
+             AssemblyFile="$(MSBuildThisFileDirectory)net8.0\Zakira.Imprint.Sdk.dll" />
+
+  <UsingTask TaskName="Zakira.Imprint.Sdk.ImprintMergeMcpServers"
+             AssemblyFile="$(MSBuildThisFileDirectory)net8.0\Zakira.Imprint.Sdk.dll" />
+
+  <UsingTask TaskName="Zakira.Imprint.Sdk.ImprintCleanMcpServers"
+             AssemblyFile="$(MSBuildThisFileDirectory)net8.0\Zakira.Imprint.Sdk.dll" />
+
+  <!-- ============================================ -->
+  <!-- APPLY PACKAGE REFERENCE METADATA             -->
+  <!-- Extract consumer overrides from PackageReference and apply to ImprintContent items -->
+  <!-- ============================================ -->
+  <Target Name="Imprint_ApplyPackageReferenceMetadata"
+          BeforeTargets="Imprint_CopyContent"
+          Condition="'$(DesignTimeBuild)' != 'true' AND '@(ImprintContent)' != ''">
+
+    <!-- 
+      For each ImprintContent item, look up the corresponding PackageReference 
+      and merge consumer-specified metadata (ImprintPrefix, ImprintUsePrefix, ImprintEnabled)
+    -->
+    <ItemGroup>
+      <ImprintContent>
+        <!-- Look up PackageReference by matching PackageId -->
+        <_MatchingPkgRef>@(PackageReference->WithMetadataValue('Identity', '%(ImprintContent.PackageId)'))</_MatchingPkgRef>
+      </ImprintContent>
+    </ItemGroup>
+
+    <!-- Apply ImprintPrefix from PackageReference if not already set -->
+    <ItemGroup>
+      <ImprintContent Condition="'%(ImprintContent.ImprintPrefix)' == ''">
+        <ImprintPrefix>%(PackageReference.ImprintPrefix)</ImprintPrefix>
+      </ImprintContent>
+    </ItemGroup>
+
+    <!-- Apply ImprintUsePrefix from PackageReference if not already set -->
+    <ItemGroup>
+      <ImprintContent Condition="'%(ImprintContent.ImprintUsePrefix)' == ''">
+        <ImprintUsePrefix>%(PackageReference.ImprintUsePrefix)</ImprintUsePrefix>
+      </ImprintContent>
+    </ItemGroup>
+
+    <!-- Apply ImprintEnabled from PackageReference if not already set -->
+    <ItemGroup>
+      <ImprintContent Condition="'%(ImprintContent.ImprintEnabled)' == ''">
+        <ImprintEnabled>%(PackageReference.ImprintEnabled)</ImprintEnabled>
+      </ImprintContent>
+    </ItemGroup>
+  </Target>
+
+  <!-- ============================================ -->
+  <!-- COPY CONTENT: Run before every Build         -->
+  <!-- ============================================ -->
+  <Target Name="Imprint_CopyContent"
+          BeforeTargets="BeforeBuild"
+          DependsOnTargets="Imprint_ApplyPackageReferenceMetadata"
+          Condition="'$(DesignTimeBuild)' != 'true' AND '@(ImprintContent)' != ''">
+
+    <ImprintCopyContent
+        ContentItems="@(ImprintContent)"
+        ProjectDirectory="$(MSBuildProjectDirectory)"
+        TargetAgents="$(ImprintTargetAgents)"
+        AutoDetectAgents="$(ImprintAutoDetectAgents)"
+        DefaultAgents="$(ImprintDefaultAgents)"
+        PrefixSkills="$(ImprintPrefixSkills)"
+        DefaultPrefix="$(ImprintDefaultPrefix)" />
+  </Target>
+
+  <!-- ============================================ -->
+  <!-- CLEAN CONTENT: Run after Clean target        -->
+  <!-- ============================================ -->
+  <Target Name="Imprint_CleanContent"
+          AfterTargets="Clean">
+
+    <ImprintCleanContent
+        ProjectDirectory="$(MSBuildProjectDirectory)"
+        TargetAgents="$(ImprintTargetAgents)"
+        AutoDetectAgents="$(ImprintAutoDetectAgents)"
+        DefaultAgents="$(ImprintDefaultAgents)" />
+  </Target>
+
+  <!-- ============================================ -->
+  <!-- MERGE MCP: Run before every Build            -->
+  <!-- ============================================ -->
+  <Target Name="Imprint_MergeMcp"
+          BeforeTargets="BeforeBuild"
+          Condition="'$(DesignTimeBuild)' != 'true' AND '@(ImprintMcpFragment)' != ''">
+
+    <ImprintMergeMcpServers
+        McpFragmentFiles="@(ImprintMcpFragment)"
+        ProjectDirectory="$(MSBuildProjectDirectory)"
+        TargetAgents="$(ImprintTargetAgents)"
+        AutoDetectAgents="$(ImprintAutoDetectAgents)"
+        DefaultAgents="$(ImprintDefaultAgents)" />
+  </Target>
+
+  <!-- ============================================ -->
+  <!-- CLEAN MCP: Run after Clean target            -->
+  <!-- ============================================ -->
+  <Target Name="Imprint_CleanMcp"
+          AfterTargets="Clean">
+
+    <ImprintCleanMcpServers
+        ProjectDirectory="$(MSBuildProjectDirectory)"
+        TargetAgents="$(ImprintTargetAgents)"
+        AutoDetectAgents="$(ImprintAutoDetectAgents)"
+        DefaultAgents="$(ImprintDefaultAgents)" />
+  </Target>
+
+</Project>

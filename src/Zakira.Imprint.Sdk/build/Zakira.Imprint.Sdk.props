@@ -1,0 +1,30 @@
+<Project>
+  <!--
+    Zakira.Imprint.Sdk - Default Properties
+    
+    These properties define the default destination paths for Imprint content.
+    Consumers can override any of these in their .csproj before the targets import.
+  -->
+
+  <PropertyGroup>
+    <!-- Multi-agent support: auto-detect which AI agents are present -->
+    <ImprintAutoDetectAgents Condition="'$(ImprintAutoDetectAgents)' == ''">true</ImprintAutoDetectAgents>
+
+    <!-- Explicit target agents (semicolon-separated: copilot;claude;cursor) -->
+    <!-- When set, disables auto-detection -->
+    <ImprintTargetAgents Condition="'$(ImprintTargetAgents)' == ''"></ImprintTargetAgents>
+
+    <!-- Default agents when auto-detection finds nothing -->
+    <ImprintDefaultAgents Condition="'$(ImprintDefaultAgents)' == ''">copilot</ImprintDefaultAgents>
+
+    <!-- Legacy: Default destination paths (still used as fallback for single-agent mode) -->
+    <ImprintSkillsPath Condition="'$(ImprintSkillsPath)' == ''">$(MSBuildProjectDirectory)\.github\skills\</ImprintSkillsPath>
+
+    <!-- Default destination for prompt files -->
+    <ImprintPromptsPath Condition="'$(ImprintPromptsPath)' == ''">$(MSBuildProjectDirectory)\.github\prompts\</ImprintPromptsPath>
+
+    <!-- Default destination for MCP config -->
+    <ImprintMcpPath Condition="'$(ImprintMcpPath)' == ''">$(MSBuildProjectDirectory)\.vscode\</ImprintMcpPath>
+  </PropertyGroup>
+
+</Project>

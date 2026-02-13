@@ -1,0 +1,30 @@
+<Project>
+  <!--
+    Sample - MSBuild Targets
+    
+    This file is automatically imported when the NuGet package is installed.
+    It declares ImprintContent items that the Zakira.Imprint.Sdk tasks will copy
+    to the consumer's project at build time.
+  -->
+
+  <PropertyGroup>
+    <_Imprint_Sample_Root>$(MSBuildThisFileDirectory)..\</_Imprint_Sample_Root>
+  </PropertyGroup>
+
+  <!-- Skill files to copy (handled by Zakira.Imprint.Sdk's ImprintCopyContent task) -->
+  <ItemGroup>
+    <ImprintContent Include="$(_Imprint_Sample_Root)skills\**\*">
+      <DestinationBase>$(ImprintSkillsPath)</DestinationBase>
+      <PackageId>Sample</PackageId>
+      <SourceBase>$(_Imprint_Sample_Root)skills\</SourceBase>
+      <!-- Author's suggested prefix for this package's skills -->
+      <SuggestedPrefix>Sample</SuggestedPrefix>
+    </ImprintContent>
+  </ItemGroup>
+
+  <!-- MCP server fragments (handled by Zakira.Imprint.Sdk's ImprintMergeMcpServers task) -->
+  <ItemGroup>
+    <ImprintMcpFragment Include="$(_Imprint_Sample_Root)mcp\*.mcp.json" />
+  </ItemGroup>
+
+</Project>
