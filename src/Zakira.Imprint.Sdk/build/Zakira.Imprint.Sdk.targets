@@ -1,0 +1,257 @@
+<Project>
+  <!--
+    Zakira.Imprint.Sdk - MSBuild Targets
+    
+    This file provides two sets of functionality:
+    
+    FOR SKILL PACKAGE AUTHORS (who reference Zakira.Imprint.Sdk):
+    - Define <Imprint> items in your .csproj to declare skill/MCP files
+    - At pack time, generates a .targets file in obj/Imprint/{PackageId}.targets
+    - Auto-includes <Imprint> files and generated .targets in the NuGet package
+    
+    FOR CONSUMERS (who reference skill packages built with the SDK):
+    - ImprintCopyContent - copies skill/prompt files from packages to consumer project
+    - ImprintCleanContent - removes copied files on dotnet clean
+    - ImprintMergeMcpServers - merges MCP server fragments into .vscode/mcp.json
+    - ImprintCleanMcpServers - removes managed MCP servers on dotnet clean
+    
+    SKILL PACKAGE AUTHOR SYNTAX:
+      <PropertyGroup>
+        <ImprintEnabledByDefault>true</ImprintEnabledByDefault>  (Optional, default: true)
+      </PropertyGroup>
+      <ItemGroup>
+        <Imprint Include="skills\**\*" />                         (Type defaults to "Skill")
+        <Imprint Include="mcp\*.mcp.json" Type="Mcp" />
+      </ItemGroup>
+    
+    CONSUMER CONFIGURATION:
+    - ImprintPrefixSkills: Global default for whether to prefix skill folders (default: false)
+    - ImprintDefaultPrefix: Global default prefix when prefixing is enabled
+    
+    Consumer configuration via PackageReference metadata:
+    - ImprintPrefix: Custom prefix for this package's skills
+    - ImprintUsePrefix: Override global ImprintPrefixSkills for this package (true/false)
+    - ImprintEnabled: Enable/disable this package's skills (overrides package's EnabledByDefault)
+  -->
+
+  <!-- Default property values -->
+  <PropertyGroup>
+    <ImprintPrefixSkills Condition="'$(ImprintPrefixSkills)' == ''">false</ImprintPrefixSkills>
+    <ImprintDefaultPrefix Condition="'$(ImprintDefaultPrefix)' == ''"></ImprintDefaultPrefix>
+    <ImprintEnabledByDefault Condition="'$(ImprintEnabledByDefault)' == ''">true</ImprintEnabledByDefault>
+    <_ImprintGeneratedTargetsDir>$(IntermediateOutputPath)Imprint\</_ImprintGeneratedTargetsDir>
+  </PropertyGroup>
+
+  <!-- Register compiled task assemblies -->
+  <UsingTask TaskName="Zakira.Imprint.Sdk.ImprintCopyContent"
+             AssemblyFile="$(MSBuildThisFileDirectory)net8.0\Zakira.Imprint.Sdk.dll" />
+
+  <UsingTask TaskName="Zakira.Imprint.Sdk.ImprintCleanContent"
+             AssemblyFile="$(MSBuildThisFileDirectory)net8.0\Zakira.Imprint.Sdk.dll" />
+
+  <UsingTask TaskName="Zakira.Imprint.Sdk.ImprintMergeMcpServers"
+             AssemblyFile="$(MSBuildThisFileDirectory)net8.0\Zakira.Imprint.Sdk.dll" />
+
+  <UsingTask TaskName="Zakira.Imprint.Sdk.ImprintCleanMcpServers"
+             AssemblyFile="$(MSBuildThisFileDirectory)net8.0\Zakira.Imprint.Sdk.dll" />
+
+  <UsingTask TaskName="Zakira.Imprint.Sdk.ImprintGenerateTargets"
+             AssemblyFile="$(MSBuildThisFileDirectory)net8.0\Zakira.Imprint.Sdk.dll" />
+
+  <!-- ============================================ -->
+  <!-- PACK-TIME: GENERATE .TARGETS FILE            -->
+  <!-- For skill package authors - runs before pack -->
+  <!-- ============================================ -->
+  <Target Name="Imprint_GenerateTargetsFile"
+          BeforeTargets="_GetPackageFiles"
+          Condition="'@(Imprint)' != ''">
+
+    <ImprintGenerateTargets
+        ImprintItems="@(Imprint)"
+        PackageId="$(PackageId)"
+        OutputPath="$(_ImprintGeneratedTargetsDir)"
+        EnabledByDefault="$(ImprintEnabledByDefault)">
+      <Output TaskParameter="GeneratedTargetsFile" PropertyName="_ImprintGeneratedTargetsFile" />
+    </ImprintGenerateTargets>
+
+    <Message Importance="High" 
+             Text="Zakira.Imprint.Sdk: Generated targets file at $(_ImprintGeneratedTargetsFile)" 
+             Condition="'$(_ImprintGeneratedTargetsFile)' != ''" />
+
+    <!-- Include the generated .targets file in the package's build folder -->
+    <ItemGroup Condition="'$(_ImprintGeneratedTargetsFile)' != '' AND Exists('$(_ImprintGeneratedTargetsFile)')">
+      <_PackageFiles Include="$(_ImprintGeneratedTargetsFile)">
+        <PackagePath>build\$(PackageId).targets</PackagePath>
+        <BuildAction>None</BuildAction>
+      </_PackageFiles>
+      <!-- Also include in buildTransitive for transitive package references -->
+      <_PackageFiles Include="$(_ImprintGeneratedTargetsFile)">
+        <PackagePath>buildTransitive\$(PackageId).targets</PackagePath>
+        <BuildAction>None</BuildAction>
+      </_PackageFiles>
+    </ItemGroup>
+  </Target>
+
+  <!-- ============================================ -->
+  <!-- PACK-TIME: AUTO-INCLUDE <Imprint> ITEMS      -->
+  <!-- ============================================ -->
+  <Target Name="Imprint_IncludeContentInPackage"
+          BeforeTargets="_GetPackageFiles"
+          Condition="'@(Imprint)' != ''">
+
+    <!-- 
+      For each <Imprint> item, add it to the package content.
+      We use _PackageFiles which is the internal item group that NuGet pack uses.
+      The PackagePath needs to preserve the full relative path including the root folder
+      (e.g., skills/personal/SKILL.md not just personal/SKILL.md).
+      
+      %(Identity) gives us the full relative path from the csproj.
+    -->
+    <ItemGroup>
+      <_PackageFiles Include="@(Imprint)">
+        <PackagePath>content\%(Identity)</PackagePath>
+        <BuildAction>None</BuildAction>
+      </_PackageFiles>
+    </ItemGroup>
+  </Target>
+
+  <!-- ============================================ -->
+  <!-- APPLY PACKAGE REFERENCE METADATA             -->
+  <!-- Extract consumer overrides from PackageReference and apply to ImprintContent items -->
+  <!-- ============================================ -->
+  <Target Name="Imprint_ApplyPackageReferenceMetadata"
+          BeforeTargets="Imprint_CopyContent"
+          Condition="'$(DesignTimeBuild)' != 'true' AND '@(ImprintContent)' != ''">
+
+    <!-- 
+      For each ImprintContent item, look up the corresponding PackageReference 
+      and merge consumer-specified metadata (ImprintPrefix, ImprintUsePrefix, ImprintEnabled)
+      
+      Priority for ImprintEnabled:
+      1. Consumer's PackageReference.ImprintEnabled (explicit override)
+      2. Package's EnabledByDefault metadata (from generated .targets)
+      3. Default to true
+    -->
+    <ItemGroup>
+      <ImprintContent>
+        <!-- Look up PackageReference by matching PackageId -->
+        <_MatchingPkgRef>@(PackageReference->WithMetadataValue('Identity', '%(ImprintContent.PackageId)'))</_MatchingPkgRef>
+      </ImprintContent>
+    </ItemGroup>
+
+    <!-- Apply ImprintPrefix from PackageReference if not already set -->
+    <ItemGroup>
+      <ImprintContent Condition="'%(ImprintContent.ImprintPrefix)' == ''">
+        <ImprintPrefix>%(PackageReference.ImprintPrefix)</ImprintPrefix>
+      </ImprintContent>
+    </ItemGroup>
+
+    <!-- Apply ImprintUsePrefix from PackageReference if not already set -->
+    <ItemGroup>
+      <ImprintContent Condition="'%(ImprintContent.ImprintUsePrefix)' == ''">
+        <ImprintUsePrefix>%(PackageReference.ImprintUsePrefix)</ImprintUsePrefix>
+      </ImprintContent>
+    </ItemGroup>
+
+    <!-- 
+      Apply ImprintEnabled: Consumer's PackageReference.ImprintEnabled takes priority,
+      then fall back to the package's EnabledByDefault, then default to true.
+    -->
+    <ItemGroup>
+      <!-- If consumer explicitly set ImprintEnabled on PackageReference, use it -->
+      <ImprintContent Condition="'%(ImprintContent.ImprintEnabled)' == '' AND '%(PackageReference.ImprintEnabled)' != ''">
+        <ImprintEnabled>%(PackageReference.ImprintEnabled)</ImprintEnabled>
+      </ImprintContent>
+      <!-- Otherwise use package's EnabledByDefault (if not already set and no consumer override) -->
+      <ImprintContent Condition="'%(ImprintContent.ImprintEnabled)' == '' AND '%(ImprintContent.EnabledByDefault)' != ''">
+        <ImprintEnabled>%(ImprintContent.EnabledByDefault)</ImprintEnabled>
+      </ImprintContent>
+      <!-- Final fallback: default to true -->
+      <ImprintContent Condition="'%(ImprintContent.ImprintEnabled)' == ''">
+        <ImprintEnabled>true</ImprintEnabled>
+      </ImprintContent>
+    </ItemGroup>
+  </Target>
+
+  <!-- Also apply EnabledByDefault for MCP fragments -->
+  <Target Name="Imprint_ApplyMcpPackageReferenceMetadata"
+          BeforeTargets="Imprint_MergeMcp"
+          Condition="'$(DesignTimeBuild)' != 'true' AND '@(ImprintMcpFragment)' != ''">
+
+    <ItemGroup>
+      <!-- If consumer explicitly set ImprintEnabled on PackageReference, use it -->
+      <ImprintMcpFragment Condition="'%(ImprintMcpFragment.ImprintEnabled)' == '' AND '%(PackageReference.ImprintEnabled)' != ''">
+        <ImprintEnabled>%(PackageReference.ImprintEnabled)</ImprintEnabled>
+      </ImprintMcpFragment>
+      <!-- Otherwise use package's EnabledByDefault -->
+      <ImprintMcpFragment Condition="'%(ImprintMcpFragment.ImprintEnabled)' == '' AND '%(ImprintMcpFragment.EnabledByDefault)' != ''">
+        <ImprintEnabled>%(ImprintMcpFragment.EnabledByDefault)</ImprintEnabled>
+      </ImprintMcpFragment>
+      <!-- Final fallback: default to true -->
+      <ImprintMcpFragment Condition="'%(ImprintMcpFragment.ImprintEnabled)' == ''">
+        <ImprintEnabled>true</ImprintEnabled>
+      </ImprintMcpFragment>
+    </ItemGroup>
+  </Target>
+
+  <!-- ============================================ -->
+  <!-- COPY CONTENT: Run before every Build         -->
+  <!-- ============================================ -->
+  <Target Name="Imprint_CopyContent"
+          BeforeTargets="BeforeBuild"
+          DependsOnTargets="Imprint_ApplyPackageReferenceMetadata"
+          Condition="'$(DesignTimeBuild)' != 'true' AND '@(ImprintContent)' != ''">
+
+    <ImprintCopyContent
+        ContentItems="@(ImprintContent)"
+        ProjectDirectory="$(MSBuildProjectDirectory)"
+        TargetAgents="$(ImprintTargetAgents)"
+        AutoDetectAgents="$(ImprintAutoDetectAgents)"
+        DefaultAgents="$(ImprintDefaultAgents)"
+        PrefixSkills="$(ImprintPrefixSkills)"
+        DefaultPrefix="$(ImprintDefaultPrefix)" />
+  </Target>
+
+  <!-- ============================================ -->
+  <!-- CLEAN CONTENT: Run after Clean target        -->
+  <!-- ============================================ -->
+  <Target Name="Imprint_CleanContent"
+          AfterTargets="Clean">
+
+    <ImprintCleanContent
+        ProjectDirectory="$(MSBuildProjectDirectory)"
+        TargetAgents="$(ImprintTargetAgents)"
+        AutoDetectAgents="$(ImprintAutoDetectAgents)"
+        DefaultAgents="$(ImprintDefaultAgents)" />
+  </Target>
+
+  <!-- ============================================ -->
+  <!-- MERGE MCP: Run before every Build            -->
+  <!-- ============================================ -->
+  <Target Name="Imprint_MergeMcp"
+          BeforeTargets="BeforeBuild"
+          DependsOnTargets="Imprint_ApplyMcpPackageReferenceMetadata"
+          Condition="'$(DesignTimeBuild)' != 'true' AND '@(ImprintMcpFragment)' != ''">
+
+    <ImprintMergeMcpServers
+        McpFragmentFiles="@(ImprintMcpFragment)"
+        ProjectDirectory="$(MSBuildProjectDirectory)"
+        TargetAgents="$(ImprintTargetAgents)"
+        AutoDetectAgents="$(ImprintAutoDetectAgents)"
+        DefaultAgents="$(ImprintDefaultAgents)" />
+  </Target>
+
+  <!-- ============================================ -->
+  <!-- CLEAN MCP: Run after Clean target            -->
+  <!-- ============================================ -->
+  <Target Name="Imprint_CleanMcp"
+          AfterTargets="Clean">
+
+    <ImprintCleanMcpServers
+        ProjectDirectory="$(MSBuildProjectDirectory)"
+        TargetAgents="$(ImprintTargetAgents)"
+        AutoDetectAgents="$(ImprintAutoDetectAgents)"
+        DefaultAgents="$(ImprintDefaultAgents)" />
+  </Target>
+
+</Project>

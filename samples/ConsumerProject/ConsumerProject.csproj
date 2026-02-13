@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Sample" Version="1.0.0" />
+  </ItemGroup>
+  <!-- 
+    This project demonstrates consuming an Imprint package.
+    After adding the package reference and running 'dotnet restore',
+    AI skills will be automatically installed to .github/skills/
+  -->
+
+</Project>

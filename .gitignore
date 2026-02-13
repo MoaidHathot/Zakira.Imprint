@@ -416,3 +416,11 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# Imprint - local test consumer projects
+samples/Consumer/
+samples/ConsumerProject/.github/
+samples/ConsumerProject/.claude/
+samples/ConsumerProject/.cursor/
+samples/ConsumerProject/.vscode/
+samples/ConsumerProject/.imprint/

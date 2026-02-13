@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <!-- Reference for compilation only; runtime assemblies come from the SDK -->
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="18.0.2" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.Build.Framework" Version="18.0.2" ExcludeAssets="runtime" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Zakira.Imprint.Sdk\Zakira.Imprint.Sdk.csproj" />
+  </ItemGroup>
+
+  <!-- Copy MSBuild assemblies from the SDK so tests can load Zakira.Imprint.Sdk at runtime -->
+  <Target Name="_CopyMSBuildAssembliesForTests" AfterTargets="Build">
+    <PropertyGroup>
+      <_MSBuildSdkDir>$(MSBuildBinPath)\</_MSBuildSdkDir>
+    </PropertyGroup>
+    <Copy SourceFiles="$(_MSBuildSdkDir)Microsoft.Build.Framework.dll"
+          DestinationFolder="$(OutputPath)"
+          SkipUnchangedFiles="true" />
+    <Copy SourceFiles="$(_MSBuildSdkDir)Microsoft.Build.Utilities.Core.dll"
+          DestinationFolder="$(OutputPath)"
+          SkipUnchangedFiles="true" />
+  </Target>
+</Project>

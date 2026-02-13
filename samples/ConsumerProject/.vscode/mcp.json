@@ -1,0 +1,12 @@
+{
+  "servers": {
+    "imprint-string-utils-docs": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@anthropic-ai/echo-mcp-server"
+      ]
+    }
+  }
+}

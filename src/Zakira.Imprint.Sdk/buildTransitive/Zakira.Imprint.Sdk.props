@@ -1,0 +1,4 @@
+<Project>
+  <!-- Import the main props from build/ folder -->
+  <Import Project="$(MSBuildThisFileDirectory)..\build\Zakira.Imprint.Sdk.props" />
+</Project>

@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <PackageId>Zakira.Imprint.Sdk</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Zakira</Authors>
+    <Description>SDK for Imprint AI Skills packages. Provides MSBuild tasks for copying skill files, prompts, and merging MCP server configurations at build time. Skill package authors reference this SDK to get standardized copy/clean/MCP-merge behavior without duplicating MSBuild logic.</Description>
+    <PackageTags>imprint;ai-skills;copilot;mcp;model-context-protocol;sdk</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+
+    <!-- Build output goes into the NuGet package under build/ so .targets can reference it -->
+    <BuildOutputTargetFolder>build</BuildOutputTargetFolder>
+    <DevelopmentDependency>true</DevelopmentDependency>
+    <NoPackageAnalysis>true</NoPackageAnalysis>
+
+    <!-- We do NOT want this DLL referenced as a compile-time dependency by consumers -->
+    <IsPackable>true</IsPackable>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+
+    <!-- Suppress warnings about no lib/ref assemblies -->
+    <NoWarn>$(NoWarn);NU5100;NU5128</NoWarn>
+
+    <!-- Copy System.Text.Json and deps into output so the task DLL is self-contained in the NuGet -->
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- MSBuild task SDK references - not packed as NuGet dependencies -->
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="18.0.2" PrivateAssets="all" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.Build.Framework" Version="18.0.2" PrivateAssets="all" ExcludeAssets="runtime" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Include MSBuild props and targets files in package -->
+    <None Include="build\Zakira.Imprint.Sdk.props" Pack="true" PackagePath="build" />
+    <None Include="build\Zakira.Imprint.Sdk.targets" Pack="true" PackagePath="build" />
+    <None Include="buildTransitive\Zakira.Imprint.Sdk.props" Pack="true" PackagePath="buildTransitive" />
+    <None Include="buildTransitive\Zakira.Imprint.Sdk.targets" Pack="true" PackagePath="buildTransitive" />
+
+    <!-- Include package README -->
+    <None Include="README.md" Pack="true" PackagePath="" />
+  </ItemGroup>
+</Project>

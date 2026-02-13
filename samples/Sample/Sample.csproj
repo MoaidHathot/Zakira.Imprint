@@ -1,0 +1,55 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Target netstandard2.0 for maximum consumer compatibility -->
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+
+    <!-- Package metadata -->
+    <PackageId>Sample</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Your Organization</Authors>
+    <Company>Your Organization</Company>
+    <Description>Sample NuGet package that ships BOTH a compiled string utility library AND AI skills. Demonstrates the Imprint pattern for packages that provide runtime code together with AI guidance.</Description>
+    <PackageTags>ai;skills;copilot;github-copilot;imprint;string-utils</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+
+    <!--
+      KEY DIFFERENCE from skill-only packages:
+      We DO include build output (the DLL). This is a real library that consumers reference in code.
+      IncludeBuildOutput defaults to true, so we don't need to set it explicitly.
+      We also do NOT set DevelopmentDependency=true because the DLL is needed at runtime.
+    -->
+    <SuppressDependenciesWhenPacking>false</SuppressDependenciesWhenPacking>
+
+    <!-- Suppress NU5128: some files in lib/ but also files in build/ -->
+    <NoWarn>$(NoWarn);NU5128</NoWarn>
+  </PropertyGroup>
+
+  <!-- 
+    NEW: Imprint SDK auto-generates .targets and auto-packs content files.
+    Just declare what files to include with <Imprint> items.
+  -->
+  <ItemGroup>
+    <!-- Skill files - Type defaults to "Skill" -->
+    <Imprint Include="skills\**\*" />
+
+    <!-- MCP server fragments -->
+    <Imprint Include="mcp\**\*.mcp.json" Type="Mcp" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Include package README -->
+    <None Include="README.md" Pack="true" PackagePath="" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Zakira.Imprint.Sdk provides the copy/clean/MCP-merge logic.
+         PrivateAssets excludes compile (no runtime dep on Sdk) but allows build targets to flow. -->
+    <PackageReference Include="Zakira.Imprint.Sdk" Version="1.0.0">
+      <PrivateAssets>compile</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+
+</Project>
