@@ -1,0 +1,117 @@
+# Site settings
+title: Zakira.Imprint
+description: Distribute AI Skills via NuGet packages. Ship SKILL.md files for GitHub Copilot, Claude, Cursor, and other AI assistants as easily as shipping a library.
+baseurl: "/Zakira.Imprint"
+url: "https://moaidhathot.github.io"
+
+# Theme
+remote_theme: just-the-docs/just-the-docs
+color_scheme: dark
+
+# Logo (optional - can be added later)
+# logo: "/assets/images/logo.svg"
+
+# Aux links (GitHub repo link in header)
+aux_links:
+  "GitHub":
+    - "https://github.com/MoaidHathot/Zakira.Imprint"
+
+aux_links_new_tab: true
+
+# Footer
+footer_content: "Copyright &copy; 2026 Moaid Hathot. Distributed under the MIT License."
+
+# Back to top link
+back_to_top: true
+back_to_top_text: "Back to top"
+
+# Heading anchor links
+heading_anchors: true
+
+# External navigation links
+nav_external_links:
+  - title: NuGet
+    url: https://www.nuget.org/packages/Zakira.Imprint.Sdk
+
+# Search
+search_enabled: true
+search:
+  heading_level: 2
+  previews: 3
+  preview_words_before: 5
+  preview_words_after: 10
+  tokenizer_separator: /[\s/]+/
+  rel_url: true
+  button: false
+
+# Callouts
+callouts_level: quiet
+callouts:
+  highlight:
+    color: yellow
+  important:
+    title: Important
+    color: blue
+  new:
+    title: New
+    color: green
+  note:
+    title: Note
+    color: purple
+  warning:
+    title: Warning
+    color: red
+
+# Collections
+collections:
+  docs:
+    permalink: "/:collection/:path/"
+    output: true
+
+# Defaults
+defaults:
+  - scope:
+      path: ""
+      type: "pages"
+    values:
+      layout: "default"
+  - scope:
+      path: "concepts"
+    values:
+      parent: Concepts
+  - scope:
+      path: "guides"
+    values:
+      parent: Guides
+  - scope:
+      path: "reference"
+    values:
+      parent: Reference
+
+# Build settings
+markdown: kramdown
+highlighter: rouge
+
+kramdown:
+  syntax_highlighter: rouge
+  syntax_highlighter_opts:
+    block:
+      line_numbers: false
+
+# Exclude from build
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor/bundle/
+  - vendor/cache/
+  - vendor/gems/
+  - vendor/ruby/
+  - "*.gem"
+  - "*.gemspec"
+
+# Plugins
+plugins:
+  - jekyll-seo-tag
+  - jekyll-github-metadata
+  - jekyll-include-cache
