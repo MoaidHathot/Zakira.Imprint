@@ -70,7 +70,7 @@ Create a new class library project and add `<Imprint>` items to declare your con
 ```xml
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
-    <PackageReference Include="Zakira.Imprint.Sdk" Version="1.0.0" />
+    <PackageReference Include="Zakira.Imprint.Sdk" Version="1.0.0-preview" />
   </ItemGroup>
 
   <!-- Declare your content using <Imprint> items -->
@@ -157,7 +157,7 @@ With `.github/` and `.claude/` directories present, installing `Zakira.Imprint.S
 
 | Package | Version | Description |
 |---------|---------|-------------|
-| **Zakira.Imprint.Sdk** | 1.0.0 | Core MSBuild task engine — auto-generates `.targets`, content copying, cleaning, MCP merging, multi-agent support |
+| **Zakira.Imprint.Sdk** | 1.0.0-preview | Core MSBuild task engine — auto-generates `.targets`, content copying, cleaning, MCP merging, multi-agent support |
 
 ## How It Works
 

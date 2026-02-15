@@ -97,7 +97,7 @@ The manifest is generated on build and should not be committed. It contains abso
 }
 ```
 
-The version number identifies the manifest format. Version 2 was introduced in SDK 1.1.0 with multi-agent support.
+The version number identifies the manifest format. Version 2 is the current format with multi-agent support.
 
 ### Packages Section
 
@@ -267,7 +267,7 @@ dotnet build
 - Single agent support (Copilot only)
 - No MCP tracking
 
-### v2 (SDK 1.1.0)
+### v2 (Current)
 
 - Unified manifest
 - Multi-agent support

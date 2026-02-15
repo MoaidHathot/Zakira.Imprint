@@ -56,7 +56,7 @@ dotnet add package Zakira.Imprint.Sdk
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="Zakira.Imprint.Sdk" Version="1.1.0">
+  <PackageReference Include="Zakira.Imprint.Sdk" Version="1.0.0-preview">
     <PrivateAssets>compile</PrivateAssets>
   </PackageReference>
 </ItemGroup>
@@ -71,8 +71,7 @@ dotnet add package Zakira.Imprint.Sdk
 
 | SDK Version | .NET SDK Required | Features |
 |:------------|:------------------|:---------|
-| 1.1.0 | .NET 8.0+ | Multi-agent, auto-generated targets, unified manifest |
-| 1.0.0 | .NET 8.0+ | Single-agent (Copilot only) |
+| 1.0.0-preview | .NET 8.0+ | Multi-agent, auto-generated targets, unified manifest |
 
 ---
 

@@ -74,7 +74,7 @@ Modify `StringUtils.csproj`:
 
   <ItemGroup>
     <!-- Reference the Imprint SDK -->
-    <PackageReference Include="Zakira.Imprint.Sdk" Version="1.1.0">
+    <PackageReference Include="Zakira.Imprint.Sdk" Version="1.0.0-preview">
       <PrivateAssets>compile</PrivateAssets>
     </PackageReference>
   </ItemGroup>

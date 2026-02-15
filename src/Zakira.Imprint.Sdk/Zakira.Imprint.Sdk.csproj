@@ -2,13 +2,17 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <PackageId>Zakira.Imprint.Sdk</PackageId>
-    <Version>1.0.0</Version>
-    <Authors>Zakira</Authors>
+    <Version>1.0.0-preview</Version>
+    <Authors>Moaid Hathot</Authors>
+    <Copyright>Copyright (c) Moaid Hathot</Copyright>
     <Description>SDK for Imprint AI Skills packages. Provides MSBuild tasks for copying skill files, prompts, and merging MCP server configurations at build time. Skill package authors reference this SDK to get standardized copy/clean/MCP-merge behavior without duplicating MSBuild logic.</Description>
     <PackageTags>imprint;ai-skills;copilot;mcp;model-context-protocol;sdk</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-<PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageIcon>Zakira.Imprint.icon.png</PackageIcon>
+    <PackageProjectUrl>https://moaidhathot.github.io/Zakira.Imprint/</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/MoaidHathot/Zakira.Imprint</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
 
     <!-- Build output goes into the NuGet package under build/ so .targets can reference it -->
     <BuildOutputTargetFolder>build</BuildOutputTargetFolder>
@@ -40,7 +44,7 @@
     <None Include="buildTransitive\Zakira.Imprint.Sdk.targets" Pack="true" PackagePath="buildTransitive" />
 
     <!-- Include package README -->
-    <None Include="README.md" Pack="true" PackagePath="" />
+    <None Include="..\..\README.md" Pack="true" PackagePath="" />
 
     <!-- Include package icon -->
     <None Include="..\..\assets\Zakira.Imprint.icon.png" Pack="true" PackagePath="" />

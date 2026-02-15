@@ -59,7 +59,7 @@ Skills-only packages contain just AI skills and MCP fragments - no compiled code
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Zakira.Imprint.Sdk" Version="1.1.0">
+    <PackageReference Include="Zakira.Imprint.Sdk" Version="1.0.0-preview">
       <PrivateAssets>compile</PrivateAssets>
     </PackageReference>
   </ItemGroup>
@@ -142,7 +142,7 @@ Code + skills packages ship both a compiled library AND AI skills. When develope
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Zakira.Imprint.Sdk" Version="1.1.0">
+    <PackageReference Include="Zakira.Imprint.Sdk" Version="1.0.0-preview">
       <PrivateAssets>compile</PrivateAssets>
     </PackageReference>
   </ItemGroup>
@@ -260,7 +260,7 @@ Here's a complete example of a string utilities library with AI skills:
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Zakira.Imprint.Sdk" Version="1.1.0">
+    <PackageReference Include="Zakira.Imprint.Sdk" Version="1.0.0-preview">
       <PrivateAssets>compile</PrivateAssets>
     </PackageReference>
   </ItemGroup>

@@ -6,7 +6,7 @@
     
     <!-- Package metadata -->
     <PackageId>Sample.FilesOnly</PackageId>
-    <Version>1.0.0</Version>
+    <Version>1.0.0-preview</Version>
     <Authors>Your Organization</Authors>
     <Company>Your Organization</Company>
     <Description>Sample AI Skills package demonstrating Imprint distribution pattern. Contains example skills for GitHub Copilot and other AI assistants.</Description>
@@ -41,7 +41,7 @@
   <ItemGroup>
     <!-- Zakira.Imprint.Sdk provides the copy/clean/MCP-merge logic.
          PrivateAssets excludes compile (no runtime dep) but allows build targets to flow to consumers. -->
-    <PackageReference Include="Zakira.Imprint.Sdk" Version="1.0.0">
+    <PackageReference Include="Zakira.Imprint.Sdk" Version="1.0.0-preview">
       <PrivateAssets>compile</PrivateAssets>
     </PackageReference>
   </ItemGroup>

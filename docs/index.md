@@ -122,7 +122,7 @@ Ship a library AND AI skills together. When developers install your library, the
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Zakira.Imprint.Sdk" Version="1.1.0">
+    <PackageReference Include="Zakira.Imprint.Sdk" Version="1.0.0-preview">
       <PrivateAssets>compile</PrivateAssets>
     </PackageReference>
   </ItemGroup>

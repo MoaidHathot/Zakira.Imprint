@@ -256,7 +256,7 @@ PackageName.csproj
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="Zakira.Imprint.Sdk" Version="1.0.0">
+  <PackageReference Include="Zakira.Imprint.Sdk" Version="1.0.0-preview">
     <PrivateAssets>compile</PrivateAssets>
   </PackageReference>
 </ItemGroup>
