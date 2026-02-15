@@ -6,6 +6,10 @@ description: "Zakira.Imprint - Distribute AI Skills via NuGet packages for GitHu
 permalink: /
 ---
 
+<p align="center">
+  <img src="{{ '/assets/images/Zakira.Imprint.icon.png' | relative_url }}" alt="Zakira.Imprint Logo" width="128" height="128" />
+</p>
+
 # Zakira.Imprint
 {: .fs-9 }
 

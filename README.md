@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/Zakira.Imprint.icon.png" alt="Zakira.Imprint Logo" width="128" height="128" />
+</p>
+
 # Imprint
 
 **Distribute AI Skills via NuGet packages** - like Roslyn Analyzers, but for AI assistants.

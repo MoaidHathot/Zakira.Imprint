@@ -7,7 +7,8 @@
     <Description>SDK for Imprint AI Skills packages. Provides MSBuild tasks for copying skill files, prompts, and merging MCP server configurations at build time. Skill package authors reference this SDK to get standardized copy/clean/MCP-merge behavior without duplicating MSBuild logic.</Description>
     <PackageTags>imprint;ai-skills;copilot;mcp;model-context-protocol;sdk</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+<PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageIcon>Zakira.Imprint.icon.png</PackageIcon>
 
     <!-- Build output goes into the NuGet package under build/ so .targets can reference it -->
     <BuildOutputTargetFolder>build</BuildOutputTargetFolder>
@@ -40,5 +41,8 @@
 
     <!-- Include package README -->
     <None Include="README.md" Pack="true" PackagePath="" />
+
+    <!-- Include package icon -->
+    <None Include="..\..\assets\Zakira.Imprint.icon.png" Pack="true" PackagePath="" />
   </ItemGroup>
 </Project>
