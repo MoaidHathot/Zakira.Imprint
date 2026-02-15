@@ -203,7 +203,23 @@ The solution is simple: these are development dependencies. They are marked as `
 
 For library authors, I would recommend being intentional about what you include. Ship skills that genuinely help users of your library. Do not include generic programming advice that AI already knows.
 
-On top of that, library authors can choose if Skills and MCP fragments are Opt-in or Opt-out (for the user), and users can always decide to force opt-in or opt-out of Skills or Mcp injection per package.
+On top of that, library authors can choose if Skills and MCP fragments are opt-in or opt-out for consumers. By setting `ImprintEnabledByDefault` in the package's `.csproj`, authors control the default behavior:
+
+```xml
+<PropertyGroup>
+  <ImprintEnabledByDefault>false</ImprintEnabledByDefault> <!-- Opt-in: disabled unless user enables -->
+</PropertyGroup>
+```
+
+Consumers can always override this per-package using metadata on their `PackageReference`:
+
+```xml
+<PackageReference Include="SomePackage" Version="1.0.0">
+  <ImprintEnabled>false</ImprintEnabled> <!-- Disable or enable this package's skills/MCP -->
+</PackageReference>
+```
+
+The consumer's explicit setting always takes priority over the package author's default.
 
 ## Two Package Patterns
 
