@@ -6,6 +6,8 @@
 
 **Distribute AI Skills and MCP configurations via NuGet packages**
 
+[![Documentation](https://img.shields.io/badge/docs-moaidhathot.github.io%2FZakira.Imprint-blue)](https://moaidhathot.github.io/Zakira.Imprint/)
+
 ## Overview
 
 Imprint is a pattern for distributing AI Skills (those `SKILLS.md` files for GitHub Copilot, Claude, Cursor, and other AI assistants) and MCP Server configuration via NuGet packages. When you add an Imprint package to your project:
