@@ -50,7 +50,7 @@ Replace the contents of `MyOrg.Skills.Security.csproj`:
     <Authors>Your Name</Authors>
     <Company>Your Organization</Company>
     <Description>Security best practices skills for AI assistants</Description>
-    <PackageTags>ai;skills;security;copilot;claude;cursor</PackageTags>
+    <PackageTags>ai;skills;security;copilot;claude;cursor;roo</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/your-org/skills-security</PackageProjectUrl>
     <RepositoryUrl>https://github.com/your-org/skills-security</RepositoryUrl>

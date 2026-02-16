@@ -10,20 +10,21 @@ permalink: /concepts/agents
 # Multi-Agent Support
 {: .fs-9 }
 
-Target GitHub Copilot, Claude, Cursor, and more - all at once.
+Target GitHub Copilot, Claude, Cursor, Roo Code, and more - all at once.
 {: .fs-6 .fw-300 }
 
 ---
 
 ## Supported Agents
 
-Imprint has built-in support for three AI assistants:
+Imprint has built-in support for four AI assistants:
 
 | Agent | Skills Directory | MCP Config File | MCP Root Key |
 |:------|:-----------------|:----------------|:-------------|
 | `copilot` | `.github/skills/` | `.vscode/mcp.json` | `servers` |
 | `claude` | `.claude/skills/` | `.claude/mcp.json` | `mcpServers` |
 | `cursor` | `.cursor/rules/` | `.cursor/mcp.json` | `mcpServers` |
+| `roo` | `.roo/rules/` | `.roo/mcp.json` | `mcpServers` |
 
 ### Agent-Specific Conventions
 
@@ -44,6 +45,11 @@ Each AI assistant has its own conventions:
 - MCP config in `.cursor/mcp.json`
 - Uses `mcpServers` as the root key in `mcp.json`
 
+**Roo Code**
+- Rules in `.roo/rules/` (note: "rules" not "skills")
+- MCP config in `.roo/mcp.json`
+- Uses `mcpServers` as the root key in `mcp.json`
+
 ---
 
 ## Agent Detection
@@ -55,6 +61,7 @@ Project Directory
 ├── .github/         ← Copilot detected
 ├── .claude/         ← Claude detected
 ├── .cursor/         ← Cursor detected
+├── .roo/            ← Roo Code detected
 └── MyProject.csproj
 ```
 
@@ -65,6 +72,7 @@ The detection logic checks for the existence of these directories:
 | `.github/` | `copilot` |
 | `.claude/` | `claude` |
 | `.cursor/` | `cursor` |
+| `.roo/` | `roo` |
 
 ---
 
@@ -211,6 +219,17 @@ skills/
 └── README.md
 ```
 
+**Installed to Roo Code (.roo/rules/):**
+```
+.roo/rules/
+├── authentication/
+│   └── SKILL.md
+├── security/
+│   ├── SKILL.md
+│   └── examples.md
+└── README.md
+```
+
 The same files are copied to each agent's native directory.
 
 ---
@@ -261,6 +280,9 @@ mkdir .claude
 
 # Enable Cursor detection
 mkdir .cursor
+
+# Enable Roo Code detection
+mkdir .roo
 ```
 
 Then run `dotnet build` - Imprint will detect and target those agents.

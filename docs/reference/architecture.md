@@ -43,14 +43,16 @@ Zakira.Imprint operates in two distinct phases:
 │  │ Package     │───▶│ ImprintCopyContent   │───▶│ .github/skills/       │   │
 │  │ .targets    │    │ MSBuild Task         │    │ .claude/skills/       │   │
 │  │ (ImprintCon-│    └──────────────────────┘    │ .cursor/rules/        │   │
-│  │ tent items) │                                └───────────────────────┘   │
+│  │ tent items) │                                │ .roo/rules/           │   │
+│  └─────────────┘                                └───────────────────────┘   │
 │  └─────────────┘                                                            │
 │                                                                             │
 │  ┌─────────────┐    ┌──────────────────────┐    ┌───────────────────────┐   │
 │  │ Package     │───▶│ ImprintMergeMcpServers│───▶│ .vscode/mcp.json      │   │
 │  │ MCP frags   │    │ MSBuild Task         │    │ .claude/mcp.json      │   │
 │  │ (ImprintMcp-│    └──────────────────────┘    │ .cursor/mcp.json      │   │
-│  │ Fragment)   │                                └───────────────────────┘   │
+│  │ Fragment)   │                                │ .roo/mcp.json         │   │
+│  └─────────────┘                                └───────────────────────┘   │
 │  └─────────────┘                                                            │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -109,7 +111,7 @@ Before copying files, Imprint determines which AI agents to target.
 
 **Resolution order:**
 1. **Explicit setting:** `<ImprintTargetAgents>copilot;claude</ImprintTargetAgents>`
-2. **Auto-detection:** Scans for `.github/`, `.claude/`, `.cursor/` directories
+2. **Auto-detection:** Scans for `.github/`, `.claude/`, `.cursor/`, `.roo/` directories
 3. **Fallback:** Uses `<ImprintDefaultAgents>` (default: `copilot`)
 
 **Known agents:**
@@ -119,6 +121,7 @@ Before copying files, Imprint determines which AI agents to target.
 | copilot | `.github` | `.github/skills/` | `.vscode/mcp.json` | `servers` |
 | claude | `.claude` | `.claude/skills/` | `.claude/mcp.json` | `mcpServers` |
 | cursor | `.cursor` | `.cursor/rules/` | `.cursor/mcp.json` | `mcpServers` |
+| roo | `.roo` | `.roo/rules/` | `.roo/mcp.json` | `mcpServers` |
 
 ### 2. Skill File Copying (`ImprintCopyContent`)
 
@@ -170,7 +173,7 @@ Solution: Use `<ImprintPrefix>` on one of the packages.
 
 **Agent-specific root keys:**
 - VS Code/Copilot: `"servers"` (matches VS Code MCP extension)
-- Claude/Cursor: `"mcpServers"` (matches their native format)
+- Claude/Cursor/Roo Code: `"mcpServers"` (matches their native format)
 
 ---
 

@@ -48,3 +48,4 @@ Detailed documentation for MSBuild tasks and item groups.
 | Copilot | `.github/skills/` | `.vscode/mcp.json` |
 | Claude | `.claude/skills/` | `.claude/mcp.json` |
 | Cursor | `.cursor/rules/` | `.cursor/mcp.json` |
+| Roo Code | `.roo/rules/` | `.roo/mcp.json` |

@@ -137,6 +137,7 @@ dotnet nuget locals all --list
 | GitHub Copilot | `.github/skills/{package-folder}/SKILL.md` |
 | Claude | `.claude/skills/{package-folder}/SKILL.md` |
 | Cursor | `.cursor/rules/{package-folder}/*.mdc` |
+| Roo Code | `.roo/rules/{package-folder}/*.mdc` |
 
 **Possible causes:**
 
@@ -149,7 +150,7 @@ dotnet nuget locals all --list
    ```
 
 2. **Wrong agent targeted:**
-   - The skill folder varies by agent (`.github/skills/`, `.claude/skills/`, `.cursor/rules/`)
+   - The skill folder varies by agent (`.github/skills/`, `.claude/skills/`, `.cursor/rules/`, `.roo/rules/`)
    - Verify `ImprintTargetAgents` is set correctly
 
 ### Manifest Conflicts
@@ -183,6 +184,7 @@ dotnet restore
 | Copilot (VS Code) | `.vscode/mcp.json` | `servers` |
 | Claude | `.claude/mcp.json` | `mcpServers` |
 | Cursor | `.cursor/mcp.json` | `mcpServers` |
+| Roo Code | `.roo/mcp.json` | `mcpServers` |
 
 **Possible causes:**
 
@@ -210,7 +212,7 @@ dotnet restore
    ```xml
    <!-- Ensure the agent is included -->
    <PropertyGroup>
-     <ImprintTargetAgents>copilot;claude;cursor</ImprintTargetAgents>
+     <ImprintTargetAgents>copilot;claude;cursor;roo</ImprintTargetAgents>
    </PropertyGroup>
    ```
 
@@ -277,6 +279,16 @@ dotnet restore
 1. Verify `.mdc` files exist in `.cursor/rules/`
 2. Restart Cursor IDE
 3. Check Cursor's rules panel for the loaded rules
+
+### Roo Code Rules Not Applied
+
+**Symptom:** Roo Code doesn't apply the deployed rules.
+
+**Checklist:**
+1. Verify rule files exist in `.roo/rules/`
+2. Check `.roo/mcp.json` for MCP configuration
+3. Restart Roo Code
+4. Verify MCP server is running (if applicable)
 
 ---
 
@@ -418,6 +430,9 @@ cat .claude/mcp.json | jq .
 
 # Cursor MCP config
 cat .cursor/mcp.json | jq .
+
+# Roo Code MCP config
+cat .roo/mcp.json | jq .
 ```
 
 ---

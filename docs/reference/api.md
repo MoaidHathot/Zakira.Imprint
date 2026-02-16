@@ -354,7 +354,7 @@ Resolves the final list of target agents using priority:
 public static List<string> DetectAgents(string projectDirectory)
 ```
 
-Scans for agent directories (`.github`, `.claude`, `.cursor`) and returns detected agents.
+Scans for agent directories (`.github`, `.claude`, `.cursor`, `.roo`) and returns detected agents.
 
 #### GetSkillsPath
 
@@ -378,7 +378,7 @@ Returns the absolute MCP config file path for an agent.
 public static string GetMcpRootKey(string agentName)
 ```
 
-Returns the JSON root key for MCP servers (`"servers"` for VS Code, `"mcpServers"` for Claude/Cursor).
+Returns the JSON root key for MCP servers (`"servers"` for VS Code, `"mcpServers"` for Claude/Cursor/Roo Code).
 
 ### KnownAgents Dictionary
 
@@ -392,10 +392,10 @@ Contains definitions for known agents with their directory conventions.
 
 ```csharp
 public record AgentDefinition(
-    string Name,           // "copilot", "claude", "cursor"
-    string DetectionDir,   // ".github", ".claude", ".cursor"
-    string SkillsSubPath,  // ".github/skills", ".claude/skills", ".cursor/rules"
-    string McpSubPath,     // ".vscode", ".claude", ".cursor"
+    string Name,           // "copilot", "claude", "cursor", "roo"
+    string DetectionDir,   // ".github", ".claude", ".cursor", ".roo"
+    string SkillsSubPath,  // ".github/skills", ".claude/skills", ".cursor/rules", ".roo/rules"
+    string McpSubPath,     // ".vscode", ".claude", ".cursor", ".roo"
     string McpFileName,    // "mcp.json"
     string McpRootKey      // "servers" or "mcpServers"
 );

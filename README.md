@@ -10,11 +10,11 @@
 
 ## Overview
 
-Imprint is a pattern for distributing AI Skills (those `SKILLS.md` files for GitHub Copilot, Claude, Cursor, and other AI assistants) and MCP Server configuration via NuGet packages. When you add an Imprint package to your project:
+Imprint is a pattern for distributing AI Skills (those `SKILLS.md` files for GitHub Copilot, Claude, Cursor, Roo Code, and other AI assistants) and MCP Server configuration via NuGet packages. When you add an Imprint package to your project:
 
 1. **On `dotnet build`**: Skills are automatically copied to each AI agent's native directory
 2. **On `dotnet clean`**: Skills are removed (including empty parent directories)
-3. **Multi-agent support**: Targets Copilot, Claude, and Cursor simultaneously — each gets files in its native location (if exists)
+3. **Multi-agent support**: Targets Copilot, Claude, Cursor, and Roo Code simultaneously — each gets files in its native location (if exists)
 4. **All file types supported**: Not just `.md` — scripts, configs, and any other files in the `skills/` folder are included
 5. **MCP Server Injection**: Packages can inject [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) server configurations into each agent's `mcp.json`
 6. **Code + Skills**: Packages can ship both a compiled DLL library **and** AI skills — consumers get runtime APIs and AI guidance from a single NuGet install
@@ -56,10 +56,10 @@ dotnet add package <some-Imprint-package>
 # Build to install skills (happens automatically before build)
 dotnet build
 
-# Skills are now at .github/skills/, .claude/skills/, .cursor/rules/ etc.
+# Skills are now at .github/skills/, .claude/skills/, .cursor/rules/, .roo/rules/ etc.
 ```
 
-Imprint auto-detects which AI agents you use by scanning for their configuration directories (`.github/`, `.claude/`, `.cursor/`). Skills are copied to each detected agent's native location.
+Imprint auto-detects which AI agents you use by scanning for their configuration directories (`.github/`, `.claude/`, `.cursor/`, `.roo/`). Skills are copied to each detected agent's native location.
 
 A shared `.gitignore` is automatically generated at `.imprint/.gitignore`, so no manual `.gitignore` configuration is needed.
 
@@ -100,6 +100,7 @@ Imprint includes multi-agent support. Instead of targeting only GitHub Copilot, 
 | `copilot` | `.github/` exists | `.github/skills/` | `.vscode/mcp.json` | `servers` |
 | `claude` | `.claude/` exists | `.claude/skills/` | `.claude/mcp.json` | `mcpServers` |
 | `cursor` | `.cursor/` exists | `.cursor/rules/` | `.cursor/mcp.json` | `mcpServers` |
+| `roo` | `.roo/` exists | `.roo/rules/` | `.roo/mcp.json` | `mcpServers` |
 
 Unknown agent names fall back to `.{name}/skills/` for skills and `.{name}/mcp.json` for MCP.
 
@@ -115,6 +116,7 @@ Imprint determines which agents to target using a priority hierarchy:
    ```
 
 2. **Auto-detection** (default, ON) — Scans for agent directories at build time. If `.github/` and `.claude/` exist, both `copilot` and `claude` are targeted.
+   Supported detection directories: `.github/` (copilot), `.claude/` (claude), `.cursor/` (cursor), `.roo/` (roo).
 
 3. **Default fallback** — If no directories are detected:
    ```xml
@@ -187,7 +189,7 @@ All Imprint skill packages depend on **Zakira.Imprint.Sdk**, which provides the 
 
 2. **Agent Resolution**: Before any file operations, `AgentConfig.ResolveAgents()` determines which agents to target:
    - If `ImprintTargetAgents` is set, use that explicit list
-   - Else if `ImprintAutoDetectAgents` is true, scan for `.github/`, `.claude/`, `.cursor/` directories
+   - Else if `ImprintAutoDetectAgents` is true, scan for `.github/`, `.claude/`, `.cursor/`, `.roo/` directories
    - Else fall back to `ImprintDefaultAgents` (default: `copilot`)
 
 3. **Content Copy** (`Imprint_CopyContent`): For each resolved agent, copies skill files to the agent's native skills directory. Writes a unified manifest v2 at `.imprint/manifest.json` tracking all files per-agent per-package.
@@ -289,6 +291,7 @@ Different AI agents use different JSON schemas for their MCP configuration files
 | Copilot (VS Code) | `servers` | `{"servers": {"my-server": {...}}}` |
 | Claude | `mcpServers` | `{"mcpServers": {"my-server": {...}}}` |
 | Cursor | `mcpServers` | `{"mcpServers": {"my-server": {...}}}` |
+| Roo Code | `mcpServers` | `{"mcpServers": {"my-server": {...}}}` |
 
 **Package authors always write fragments using `"servers"`** as the root key. The SDK reads these fragments and transforms them to each agent's expected schema when writing to their respective `mcp.json` files. The inner server definition (`command`, `args`, `type`, `env`) is identical across all agents.
 
@@ -420,7 +423,7 @@ dotnet build
 - [x] ~~Per-package manifests for precise file tracking~~
 - [x] ~~Code + Skills package pattern~~
 - [x] ~~Unit tests for MSBuild task classes~~
-- [x] ~~Multi-agent support (Copilot, Claude, Cursor)~~
+- [x] ~~Multi-agent support (Copilot, Claude, Cursor, Roo Code)~~
 - [x] ~~Auto-detection of AI agents~~
 - [x] ~~Unified manifest v2 with per-agent tracking~~
 - [x] ~~Auto-generated `.targets` files — no manual MSBuild authoring required~~

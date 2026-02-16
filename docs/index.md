@@ -2,7 +2,7 @@
 layout: default
 title: Home
 nav_order: 1
-description: "Zakira.Imprint - Distribute AI Skills via NuGet packages for GitHub Copilot, Claude, Cursor, and other AI assistants."
+description: "Zakira.Imprint - Distribute AI Skills via NuGet packages for GitHub Copilot, Claude, Cursor, Roo Code, and other AI assistants."
 permalink: /
 ---
 
@@ -13,7 +13,7 @@ permalink: /
 # Zakira.Imprint
 {: .fs-9 }
 
-Distribute AI Skills via NuGet packages. Ship SKILL.md files for GitHub Copilot, Claude, Cursor, and other AI assistants as easily as shipping a library.
+Distribute AI Skills via NuGet packages. Ship SKILL.md files for GitHub Copilot, Claude, Cursor, Roo Code, and other AI assistants as easily as shipping a library.
 {: .fs-6 .fw-300 }
 
 [Get Started]({{ site.baseurl }}/getting-started){: .btn .btn-primary .fs-5 .mb-4 .mb-md-0 .mr-2 }
@@ -35,7 +35,7 @@ Distribute AI Skills via NuGet packages. Ship SKILL.md files for GitHub Copilot,
 ```
 dotnet add package Contoso.Skills.AzureSecurity
 dotnet build
-# Skills are now available in GitHub Copilot, Claude, and Cursor!
+# Skills are now available in GitHub Copilot, Claude, Cursor, and Roo Code!
 ```
 
 ## Key Features
@@ -49,6 +49,7 @@ Imprint automatically detects and targets multiple AI assistants simultaneously:
 | GitHub Copilot | `.github/skills/` | `.vscode/mcp.json` |
 | Claude | `.claude/skills/` | `.claude/mcp.json` |
 | Cursor | `.cursor/rules/` | `.cursor/mcp.json` |
+| Roo Code | `.roo/rules/` | `.roo/mcp.json` |
 
 ### Zero Configuration
 
@@ -157,6 +158,7 @@ After build, the skill is available at:
 - `.github/skills/security/SKILL.md` (Copilot)
 - `.claude/skills/security/SKILL.md` (Claude)
 - `.cursor/rules/security/SKILL.md` (Cursor)
+- `.roo/rules/security/SKILL.md` (Roo Code)
 
 ---
 

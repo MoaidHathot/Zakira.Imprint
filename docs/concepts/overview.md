@@ -17,11 +17,12 @@ Understanding the complete picture of Imprint's architecture.
 
 ## The Problem
 
-AI assistants like GitHub Copilot, Claude, and Cursor can be enhanced with context-specific instructions called "skills" or "rules". These are typically Markdown files placed in special directories:
+AI assistants like GitHub Copilot, Claude, Cursor, and Roo Code can be enhanced with context-specific instructions called "skills" or "rules". These are typically Markdown files placed in special directories:
 
 - GitHub Copilot: `.github/skills/`
 - Claude: `.claude/skills/`
 - Cursor: `.cursor/rules/`
+- Roo Code: `.roo/rules/`
 
 The challenge is: **how do you distribute these skills across an organization or to users of your library?**
 

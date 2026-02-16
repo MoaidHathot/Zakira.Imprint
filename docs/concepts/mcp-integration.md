@@ -295,6 +295,22 @@ Different AI assistants use slightly different MCP formats:
 }
 ```
 
+### Roo Code
+
+**File:** `.roo/mcp.json`
+**Root Key:** `mcpServers`
+
+```json
+{
+  "mcpServers": {
+    "my-server": {
+      "command": "npx",
+      "args": ["-y", "@org/server"]
+    }
+  }
+}
+```
+
 Imprint handles these differences automatically. You write one fragment with `servers`, and Imprint translates to the correct format for each agent.
 
 ---

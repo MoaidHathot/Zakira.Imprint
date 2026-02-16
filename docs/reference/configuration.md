@@ -29,6 +29,7 @@ When enabled, Imprint scans the project directory for existing agent folders:
 - `.github/` → Copilot detected
 - `.claude/` → Claude detected  
 - `.cursor/` → Cursor detected
+- `.roo/` → Roo Code detected
 
 ```xml
 <PropertyGroup>
@@ -47,7 +48,7 @@ Explicitly specifies which agents to target. When set, disables auto-detection.
 | **Type** | String (semicolon-separated) |
 | **Default** | *(empty)* |
 | **Scope** | Consumer projects |
-| **Values** | `copilot`, `claude`, `cursor` |
+| **Values** | `copilot`, `claude`, `cursor`, `roo` |
 
 ```xml
 <PropertyGroup>
@@ -71,7 +72,7 @@ Fallback agents when auto-detection finds no existing agent directories.
 ```xml
 <PropertyGroup>
   <!-- Default to all agents if none detected -->
-  <ImprintDefaultAgents>copilot;claude;cursor</ImprintDefaultAgents>
+  <ImprintDefaultAgents>copilot;claude;cursor;roo</ImprintDefaultAgents>
 </PropertyGroup>
 ```
 

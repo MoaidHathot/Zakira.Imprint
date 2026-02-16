@@ -375,6 +375,19 @@ Imprint adapts the MCP format for each agent:
 }
 ```
 
+### Roo Code
+
+**Location:** `.roo/mcp.json`
+**Root key:** `mcpServers`
+
+```json
+{
+  "mcpServers": {
+    "my-server": { ... }
+  }
+}
+```
+
 You write one fragment with `servers`, and Imprint handles the translation.
 
 ---
@@ -393,6 +406,7 @@ dotnet build
 cat .vscode/mcp.json   # Copilot
 cat .claude/mcp.json   # Claude
 cat .cursor/mcp.json   # Cursor
+cat .roo/mcp.json     # Roo Code
 ```
 
 ### Step 3: Verify Server Starts

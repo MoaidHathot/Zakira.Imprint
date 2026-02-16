@@ -76,6 +76,9 @@ ls .claude/skills/
 
 # Cursor
 ls .cursor/rules/
+
+# Roo Code
+ls .roo/rules/
 ```
 
 ### Check MCP Configuration
@@ -89,6 +92,9 @@ cat .claude/mcp.json
 
 # Cursor
 cat .cursor/mcp.json
+
+# Roo Code
+cat .roo/mcp.json
 ```
 
 ### Check the Manifest
@@ -135,6 +141,7 @@ By default, Imprint detects agents by looking for their directories:
 | `.github/` | copilot |
 | `.claude/` | claude |
 | `.cursor/` | cursor |
+| `.roo/` | roo |
 
 To enable auto-detection, create the agent directory:
 
@@ -142,6 +149,7 @@ To enable auto-detection, create the agent directory:
 mkdir .github   # Enable Copilot
 mkdir .claude   # Enable Claude
 mkdir .cursor   # Enable Cursor
+mkdir .roo      # Enable Roo Code
 ```
 
 ### Explicit Configuration
@@ -244,11 +252,13 @@ If you prefer to not commit generated files:
 .github/skills/
 .claude/skills/
 .cursor/rules/
+.roo/rules/
 
 # Ignore generated MCP configs (if desired)
 # .vscode/mcp.json
 # .claude/mcp.json
 # .cursor/mcp.json
+# .roo/mcp.json
 ```
 
 ---
@@ -303,7 +313,7 @@ Check the package documentation for required variables.
 **Check agent directories exist:**
 ```bash
 ls -la | grep -E '^\.'
-# Should show .github, .claude, or .cursor
+# Should show .github, .claude, .cursor, or .roo
 ```
 
 **Check the manifest:**

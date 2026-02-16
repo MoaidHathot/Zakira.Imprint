@@ -218,6 +218,7 @@ If the manifest is deleted or corrupted, clean behavior changes:
 # .github/skills/
 # .claude/skills/
 # .cursor/rules/
+# .roo/rules/
 ```
 
 ---

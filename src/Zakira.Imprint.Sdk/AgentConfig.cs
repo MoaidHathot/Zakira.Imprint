@@ -38,6 +38,13 @@ namespace Zakira.Imprint.Sdk
                     McpSubPath: ".cursor",
                     McpFileName: "mcp.json",
                     McpRootKey: "mcpServers"),
+                ["roo"] = new AgentDefinition(
+                    Name: "roo",
+                    DetectionDir: ".roo",
+                    SkillsSubPath: ".roo" + Path.DirectorySeparatorChar + "rules",
+                    McpSubPath: ".roo",
+                    McpFileName: "mcp.json",
+                    McpRootKey: "mcpServers"),
             };
 
         /// <summary>

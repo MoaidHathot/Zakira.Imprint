@@ -132,6 +132,7 @@ After installing a skill package and building:
    ls .github/skills/   # Copilot
    ls .claude/skills/   # Claude
    ls .cursor/rules/    # Cursor
+   ls .roo/rules/       # Roo Code
    ```
 
 2. Check the manifest:
