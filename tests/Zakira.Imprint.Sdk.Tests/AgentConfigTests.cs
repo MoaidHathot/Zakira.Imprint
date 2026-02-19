@@ -245,7 +245,7 @@ public class AgentConfigTests : IDisposable
     public void GetSkillsPath_Opencode()
     {
         var path = AgentConfig.GetSkillsPath(_testDir, "opencode");
-        Assert.Equal(Path.Combine(_testDir, ".opencode", "agents"), path);
+        Assert.Equal(Path.Combine(_testDir, ".opencode", "skills"), path);
     }
 
     [Fact]
@@ -417,7 +417,7 @@ public class AgentConfigTests : IDisposable
         var def = AgentConfig.KnownAgents["opencode"];
         Assert.Equal("opencode", def.Name);
         Assert.Equal(".opencode", def.DetectionDir);
-        Assert.Equal(".opencode" + Path.DirectorySeparatorChar + "agents", def.SkillsSubPath);
+        Assert.Equal(".opencode" + Path.DirectorySeparatorChar + "skills", def.SkillsSubPath);
         Assert.Equal("", def.McpSubPath);
         Assert.Equal("opencode.json", def.McpFileName);
         Assert.Equal("mcp", def.McpRootKey);

@@ -10,14 +10,14 @@ permalink: /concepts/agents
 # Multi-Agent Support
 {: .fs-9 }
 
-Target GitHub Copilot, Claude, Cursor, Roo Code, and more - all at once.
+Target GitHub Copilot, Claude, Cursor, Roo Code, OpenCode, and more - all at once.
 {: .fs-6 .fw-300 }
 
 ---
 
 ## Supported Agents
 
-Imprint has built-in support for four AI assistants:
+Imprint has built-in support for five AI assistants:
 
 | Agent | Skills Directory | MCP Config File | MCP Root Key |
 |:------|:-----------------|:----------------|:-------------|
@@ -25,6 +25,7 @@ Imprint has built-in support for four AI assistants:
 | `claude` | `.claude/skills/` | `.claude/mcp.json` | `mcpServers` |
 | `cursor` | `.cursor/rules/` | `.cursor/mcp.json` | `mcpServers` |
 | `roo` | `.roo/rules/` | `.roo/mcp.json` | `mcpServers` |
+| `opencode` | `.opencode/skills/` | `opencode.json` (project root) | `mcp` |
 
 ### Agent-Specific Conventions
 
@@ -50,6 +51,12 @@ Each AI assistant has its own conventions:
 - MCP config in `.roo/mcp.json`
 - Uses `mcpServers` as the root key in `mcp.json`
 
+**OpenCode**
+- Skills in `.opencode/skills/`
+- MCP config in `opencode.json` at the project root (not in a subdirectory)
+- Uses `mcp` as the root key
+- MCP servers use a different format: `{ "type": "local", "command": ["npx", "-y", "..."], "enabled": true }`
+
 ---
 
 ## Agent Detection
@@ -62,6 +69,7 @@ Project Directory
 ├── .claude/         ← Claude detected
 ├── .cursor/         ← Cursor detected
 ├── .roo/            ← Roo Code detected
+├── .opencode/       ← OpenCode detected
 └── MyProject.csproj
 ```
 
@@ -73,6 +81,7 @@ The detection logic checks for the existence of these directories:
 | `.claude/` | `claude` |
 | `.cursor/` | `cursor` |
 | `.roo/` | `roo` |
+| `.opencode/` | `opencode` |
 
 ---
 
@@ -263,6 +272,21 @@ Each agent may have slightly different MCP configuration formats:
 }
 ```
 
+**OpenCode (`opencode.json` at project root):**
+```json
+{
+  "mcp": {
+    "my-server": {
+      "type": "local",
+      "command": ["npx", "-y", "@my-org/my-server"],
+      "enabled": true
+    }
+  }
+}
+```
+
+Note: OpenCode combines `command` and `args` into a single `command` array, uses `type: "local"` instead of `type: "stdio"`, and stores its config at the project root (not in a subdirectory).
+
 Imprint handles these differences automatically when merging MCP fragments.
 
 ---
@@ -283,6 +307,9 @@ mkdir .cursor
 
 # Enable Roo Code detection
 mkdir .roo
+
+# Enable OpenCode detection
+mkdir .opencode
 ```
 
 Then run `dotnet build` - Imprint will detect and target those agents.

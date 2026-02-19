@@ -101,6 +101,7 @@ Imprint includes multi-agent support. Instead of targeting only GitHub Copilot, 
 | `claude` | `.claude/` exists | `.claude/skills/` | `.claude/mcp.json` | `mcpServers` |
 | `cursor` | `.cursor/` exists | `.cursor/rules/` | `.cursor/mcp.json` | `mcpServers` |
 | `roo` | `.roo/` exists | `.roo/rules/` | `.roo/mcp.json` | `mcpServers` |
+| `opencode` | `.opencode/` exists | `.opencode/skills/` | `opencode.json` (project root) | `mcp` |
 
 Unknown agent names fall back to `.{name}/skills/` for skills and `.{name}/mcp.json` for MCP.
 
@@ -116,7 +117,7 @@ Imprint determines which agents to target using a priority hierarchy:
    ```
 
 2. **Auto-detection** (default, ON) — Scans for agent directories at build time. If `.github/` and `.claude/` exist, both `copilot` and `claude` are targeted.
-   Supported detection directories: `.github/` (copilot), `.claude/` (claude), `.cursor/` (cursor), `.roo/` (roo).
+   Supported detection directories: `.github/` (copilot), `.claude/` (claude), `.cursor/` (cursor), `.roo/` (roo), `.opencode/` (opencode).
 
 3. **Default fallback** — If no directories are detected:
    ```xml
@@ -189,7 +190,7 @@ All Imprint skill packages depend on **Zakira.Imprint.Sdk**, which provides the 
 
 2. **Agent Resolution**: Before any file operations, `AgentConfig.ResolveAgents()` determines which agents to target:
    - If `ImprintTargetAgents` is set, use that explicit list
-   - Else if `ImprintAutoDetectAgents` is true, scan for `.github/`, `.claude/`, `.cursor/`, `.roo/` directories
+   - Else if `ImprintAutoDetectAgents` is true, scan for `.github/`, `.claude/`, `.cursor/`, `.roo/`, `.opencode/` directories
    - Else fall back to `ImprintDefaultAgents` (default: `copilot`)
 
 3. **Content Copy** (`Imprint_CopyContent`): For each resolved agent, copies skill files to the agent's native skills directory. Writes a unified manifest v2 at `.imprint/manifest.json` tracking all files per-agent per-package.
