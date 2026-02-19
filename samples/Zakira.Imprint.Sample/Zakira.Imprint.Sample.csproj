@@ -6,14 +6,18 @@
     <LangVersion>latest</LangVersion>
 
     <!-- Package metadata -->
-    <PackageId>Sample</PackageId>
-    <Version>1.0.0-preview</Version>
-    <Authors>Your Organization</Authors>
-    <Company>Your Organization</Company>
-    <Description>Sample NuGet package that ships BOTH a compiled string utility library AND AI skills. Demonstrates the Imprint pattern for packages that provide runtime code together with AI guidance.</Description>
-    <PackageTags>ai;skills;copilot;github-copilot;imprint;string-utils</PackageTags>
+    <PackageId>Zakira.Imprint.Sample</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Moaid Hathot</Authors>
+    <Copyright>Copyright (c) Moaid Hathot</Copyright>
+    <Description>Sample NuGet package demonstrating how Zakira.Imprint works. Ships both a compiled string utility library and AI skills to show the Imprint pattern for packages that provide runtime code together with AI guidance.</Description>
+    <PackageTags>imprint;ai-skills;copilot;mcp;model-context-protocol;sample;string-utils</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageIcon>Zakira.Imprint.icon.png</PackageIcon>
+    <PackageProjectUrl>https://moaidhathot.github.io/Zakira.Imprint/</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/MoaidHathot/Zakira.Imprint</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
 
     <!--
       KEY DIFFERENCE from skill-only packages:
@@ -42,6 +46,9 @@
   <ItemGroup>
     <!-- Include package README -->
     <None Include="README.md" Pack="true" PackagePath="" />
+
+    <!-- Include package icon -->
+    <None Include="..\..\assets\Zakira.Imprint.icon.png" Pack="true" PackagePath="" />
   </ItemGroup>
 
   <ItemGroup>

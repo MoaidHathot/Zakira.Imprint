@@ -1,13 +1,13 @@
 ---
-name: Zakira.Imprint.Sample.WithCode - String Utilities Library
+name: Zakira.Imprint.Sample - String Utilities Library
 description: Comprehensive guide for AI assistants on using the StringExtensions and StringHelper APIs
 version: 1.0.0
 author: Imprint
 ---
 
-# Zakira.Imprint.Sample.WithCode - String Utilities
+# Zakira.Imprint.Sample - String Utilities
 
-This skill teaches you how to use the `Zakira.Imprint.Sample.WithCode` NuGet package, which provides string manipulation utilities via the `StringExtensions` and `StringHelper` classes.
+This skill teaches you how to use the `Zakira.Imprint.Sample` NuGet package, which provides string manipulation utilities via the `StringExtensions` and `StringHelper` classes.
 
 ## Namespace
 
@@ -204,6 +204,6 @@ var slug = input.Slugify();          // => "my-property-name" (kebab-like)
 
 ## Source Package
 
-- **Package**: Zakira.Imprint.Sample.WithCode
+- **Package**: Zakira.Imprint.Sample
 - **Installed Via**: NuGet (provides both the DLL and these skill files)
 - **Skill Location**: `.github/skills/`
