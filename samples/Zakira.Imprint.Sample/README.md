@@ -1,10 +1,10 @@
-# Zakira.Imprint.Sample.WithCode
+# Zakira.Imprint.Sample
 
 A sample NuGet package demonstrating how to ship **both a compiled library and AI skills** using the Imprint pattern.
 
 ## What This Package Contains
 
-1. **A .NET library** (`Zakira.Imprint.Sample.WithCode.dll`) with string utility classes:
+1. **A .NET library** (`Zakira.Imprint.Sample.dll`) with string utility classes:
    - `StringExtensions` - Extension methods: `Slugify()`, `Truncate()`, `Mask()`, `ToTitleCase()`, `RemoveDiacritics()`, `ToCamelCase()`, `ToSnakeCase()`, `Reverse()`, `WordCount()`
    - `StringHelper` - Static helpers: `MaskEmail()`, `MaskCreditCard()`, `ShortHash()`, `GenerateRandom()`, `IsValidEmail()`, `GetInitials()`
 
@@ -15,7 +15,7 @@ A sample NuGet package demonstrating how to ship **both a compiled library and A
 ## Installation
 
 ```
-dotnet add package Zakira.Imprint.Sample.WithCode
+dotnet add package Zakira.Imprint.Sample
 ```
 
 ## Usage
@@ -39,7 +39,7 @@ var initials = StringHelper.GetInitials("John Doe");       // "JD"
 This package uses the **Zakira.Imprint.Sdk** to automatically copy AI skill files and merge MCP configuration into consumer projects at build time. Unlike skill-only packages, this package also ships a compiled DLL that provides actual runtime functionality.
 
 When you install this package and build your project:
-- The `Zakira.Imprint.Sample.WithCode.dll` is referenced like any normal NuGet library
+- The `Zakira.Imprint.Sample.dll` is referenced like any normal NuGet library
 - Skill markdown files are copied to `.github/skills/`
 - MCP server fragments are merged into `.vscode/mcp.json`
 

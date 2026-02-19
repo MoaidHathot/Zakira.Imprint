@@ -18,7 +18,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{B5354344
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zakira.Imprint.Sdk.Tests", "tests\Zakira.Imprint.Sdk.Tests\Zakira.Imprint.Sdk.Tests.csproj", "{C1EFEF6D-57DC-45B6-9574-BDA7519ABE91}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample", "samples\Sample\Sample.csproj", "{F3A86935-A750-46FD-B74C-D2BE6C128243}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zakira.Imprint.Sample", "samples\Zakira.Imprint.Sample\Zakira.Imprint.Sample.csproj", "{F3A86935-A750-46FD-B74C-D2BE6C128243}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

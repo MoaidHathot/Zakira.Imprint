@@ -6,7 +6,7 @@
     <LangVersion>latest</LangVersion>
 
     <!-- Package metadata -->
-    <PackageId>Sample</PackageId>
+    <PackageId>Zakira.Imprint.Sample</PackageId>
     <Version>1.0.0-preview</Version>
     <Authors>Your Organization</Authors>
     <Company>Your Organization</Company>
