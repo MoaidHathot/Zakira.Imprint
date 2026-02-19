@@ -1,6 +1,8 @@
 # Zakira.Imprint.Sample
 
-A sample NuGet package demonstrating how to ship **both a compiled library and AI skills** using the Imprint pattern.
+A sample NuGet package demonstrating how [Zakira.Imprint](https://github.com/MoaidHathot/Zakira.Imprint) works. This package ships **both a compiled library and AI skills** using the Imprint pattern.
+
+For full documentation and more examples, visit the [Zakira.Imprint project site](https://moaidhathot.github.io/Zakira.Imprint/).
 
 ## What This Package Contains
 
@@ -36,7 +38,7 @@ var initials = StringHelper.GetInitials("John Doe");       // "JD"
 
 ## How It Works
 
-This package uses the **Zakira.Imprint.Sdk** to automatically copy AI skill files and merge MCP configuration into consumer projects at build time. Unlike skill-only packages, this package also ships a compiled DLL that provides actual runtime functionality.
+This package uses the [Zakira.Imprint.Sdk](https://www.nuget.org/packages/Zakira.Imprint.Sdk) to automatically copy AI skill files and merge MCP configuration into consumer projects at build time. Unlike skill-only packages, this package also ships a compiled DLL that provides actual runtime functionality.
 
 When you install this package and build your project:
 - The `Zakira.Imprint.Sample.dll` is referenced like any normal NuGet library
@@ -44,3 +46,13 @@ When you install this package and build your project:
 - MCP server fragments are merged into `.vscode/mcp.json`
 
 On `dotnet clean`, the skill files and MCP entries are removed.
+
+## Links
+
+- [GitHub Repository](https://github.com/MoaidHathot/Zakira.Imprint)
+- [Project Site & Documentation](https://moaidhathot.github.io/Zakira.Imprint/)
+- [Zakira.Imprint.Sdk on NuGet](https://www.nuget.org/packages/Zakira.Imprint.Sdk)
+
+## License
+
+MIT License - see [LICENSE](https://github.com/MoaidHathot/Zakira.Imprint/blob/main/LICENSE) for details.
