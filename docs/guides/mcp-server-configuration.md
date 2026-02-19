@@ -388,6 +388,23 @@ Imprint adapts the MCP format for each agent:
 }
 ```
 
+### OpenCode
+
+**Location:** `opencode.json` (project root)
+**Root key:** `mcp`
+
+```json
+{
+  "mcp": {
+    "my-server": {
+      "type": "local",
+      "command": ["npx", "-y", "@your-org/your-mcp-server"],
+      "enabled": true
+    }
+  }
+}
+```
+
 You write one fragment with `servers`, and Imprint handles the translation.
 
 ---
@@ -406,7 +423,8 @@ dotnet build
 cat .vscode/mcp.json   # Copilot
 cat .claude/mcp.json   # Claude
 cat .cursor/mcp.json   # Cursor
-cat .roo/mcp.json     # Roo Code
+cat .roo/mcp.json      # Roo Code
+cat opencode.json      # OpenCode
 ```
 
 ### Step 3: Verify Server Starts

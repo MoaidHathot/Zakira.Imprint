@@ -129,18 +129,28 @@ public class AgentConfigTests : IDisposable
     }
 
     [Fact]
+    public void DetectAgents_FindsOpencode()
+    {
+        Directory.CreateDirectory(Path.Combine(_testDir, ".opencode"));
+        var detected = AgentConfig.DetectAgents(_testDir);
+        Assert.Contains("opencode", detected);
+    }
+
+    [Fact]
     public void DetectAgents_FindsMultiple()
     {
         Directory.CreateDirectory(Path.Combine(_testDir, ".github"));
         Directory.CreateDirectory(Path.Combine(_testDir, ".claude"));
         Directory.CreateDirectory(Path.Combine(_testDir, ".cursor"));
         Directory.CreateDirectory(Path.Combine(_testDir, ".roo"));
+        Directory.CreateDirectory(Path.Combine(_testDir, ".opencode"));
         var detected = AgentConfig.DetectAgents(_testDir);
-        Assert.Equal(4, detected.Count);
+        Assert.Equal(5, detected.Count);
         Assert.Contains("copilot", detected);
         Assert.Contains("claude", detected);
         Assert.Contains("cursor", detected);
         Assert.Contains("roo", detected);
+        Assert.Contains("opencode", detected);
     }
 
     [Fact]
@@ -232,6 +242,13 @@ public class AgentConfigTests : IDisposable
     }
 
     [Fact]
+    public void GetSkillsPath_Opencode()
+    {
+        var path = AgentConfig.GetSkillsPath(_testDir, "opencode");
+        Assert.Equal(Path.Combine(_testDir, ".opencode", "agents"), path);
+    }
+
+    [Fact]
     public void GetSkillsPath_UnknownAgent_UsesConvention()
     {
         var path = AgentConfig.GetSkillsPath(_testDir, "windsurf");
@@ -266,6 +283,13 @@ public class AgentConfigTests : IDisposable
     {
         var path = AgentConfig.GetMcpPath(_testDir, "roo");
         Assert.Equal(Path.Combine(_testDir, ".roo", "mcp.json"), path);
+    }
+
+    [Fact]
+    public void GetMcpPath_Opencode()
+    {
+        var path = AgentConfig.GetMcpPath(_testDir, "opencode");
+        Assert.Equal(Path.Combine(_testDir, "opencode.json"), path);
     }
 
     [Fact]
@@ -306,6 +330,13 @@ public class AgentConfigTests : IDisposable
     }
 
     [Fact]
+    public void GetMcpDirectory_Opencode()
+    {
+        var dir = AgentConfig.GetMcpDirectory(_testDir, "opencode");
+        Assert.Equal(_testDir, dir);
+    }
+
+    [Fact]
     public void GetMcpDirectory_UnknownAgent_UsesConvention()
     {
         var dir = AgentConfig.GetMcpDirectory(_testDir, "windsurf");
@@ -315,13 +346,14 @@ public class AgentConfigTests : IDisposable
     // ── KnownAgents ─────────────────────────────────────────────────
 
     [Fact]
-    public void KnownAgents_ContainsFourAgents()
+    public void KnownAgents_ContainsFiveAgents()
     {
-        Assert.Equal(4, AgentConfig.KnownAgents.Count);
+        Assert.Equal(5, AgentConfig.KnownAgents.Count);
         Assert.True(AgentConfig.KnownAgents.ContainsKey("copilot"));
         Assert.True(AgentConfig.KnownAgents.ContainsKey("claude"));
         Assert.True(AgentConfig.KnownAgents.ContainsKey("cursor"));
         Assert.True(AgentConfig.KnownAgents.ContainsKey("roo"));
+        Assert.True(AgentConfig.KnownAgents.ContainsKey("opencode"));
     }
 
     [Fact]
@@ -331,6 +363,7 @@ public class AgentConfigTests : IDisposable
         Assert.True(AgentConfig.KnownAgents.ContainsKey("CLAUDE"));
         Assert.True(AgentConfig.KnownAgents.ContainsKey("cUrSoR"));
         Assert.True(AgentConfig.KnownAgents.ContainsKey("ROO"));
+        Assert.True(AgentConfig.KnownAgents.ContainsKey("OpenCode"));
     }
 
     [Fact]
@@ -376,5 +409,17 @@ public class AgentConfigTests : IDisposable
         Assert.Equal(".roo", def.McpSubPath);
         Assert.Equal("mcp.json", def.McpFileName);
         Assert.Equal("mcpServers", def.McpRootKey);
+    }
+
+    [Fact]
+    public void KnownAgents_OpencodeDefinition()
+    {
+        var def = AgentConfig.KnownAgents["opencode"];
+        Assert.Equal("opencode", def.Name);
+        Assert.Equal(".opencode", def.DetectionDir);
+        Assert.Equal(".opencode" + Path.DirectorySeparatorChar + "agents", def.SkillsSubPath);
+        Assert.Equal("", def.McpSubPath);
+        Assert.Equal("opencode.json", def.McpFileName);
+        Assert.Equal("mcp", def.McpRootKey);
     }
 }

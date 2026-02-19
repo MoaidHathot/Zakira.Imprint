@@ -131,7 +131,7 @@ namespace Zakira.Imprint.Sdk
         private void MergeServersIntoFile(string mcpFilePath, string mcpDir,
             Dictionary<string, JsonNode> newManagedServers, HashSet<string> oldManagedKeys, string agent)
         {
-            // Get the agent-specific root key (e.g., "servers" for VS Code, "mcpServers" for Claude/Cursor)
+            // Get the agent-specific root key (e.g., "servers" for VS Code, "mcpServers" for Claude/Cursor, "mcp" for OpenCode)
             var rootKey = AgentConfig.GetMcpRootKey(agent);
 
             // Read existing mcp.json
@@ -153,7 +153,7 @@ namespace Zakira.Imprint.Sdk
                 mcpDoc = new JsonObject();
             }
 
-            // Ensure the root key object exists (e.g., "servers" or "mcpServers")
+            // Ensure the root key object exists (e.g., "servers" or "mcpServers" or "mcp")
             if (mcpDoc[rootKey] == null)
             {
                 mcpDoc[rootKey] = new JsonObject();
@@ -170,7 +170,10 @@ namespace Zakira.Imprint.Sdk
             foreach (var kvp in newManagedServers)
             {
                 serversObj.Remove(kvp.Key); // remove first to avoid duplicate key
-                serversObj.Add(kvp.Key, kvp.Value.DeepClone());
+                
+                // Transform server config for agent-specific format
+                var serverConfig = TransformServerConfigForAgent(kvp.Value.DeepClone(), agent);
+                serversObj.Add(kvp.Key, serverConfig);
             }
 
             // Serialize with pretty-print
@@ -198,6 +201,67 @@ namespace Zakira.Imprint.Sdk
                 Log.LogMessage(MessageImportance.Normal, "Zakira.Imprint.Sdk: {0} is already up to date ({1}).",
                     mcpFilePath, agent);
             }
+        }
+
+        /// <summary>
+        /// Transforms a server configuration from the standard fragment format to an agent-specific format.
+        /// OpenCode requires a different format: type "local" instead of "stdio", command as array instead of
+        /// command + args, and an "enabled" property.
+        /// </summary>
+        private static JsonNode TransformServerConfigForAgent(JsonNode serverConfig, string agent)
+        {
+            if (!agent.Equals("opencode", StringComparison.OrdinalIgnoreCase))
+            {
+                // Other agents use the standard format
+                return serverConfig;
+            }
+
+            // Transform for OpenCode:
+            // Input:  { "type": "stdio", "command": "npx", "args": ["-y", "..."] }
+            // Output: { "type": "local", "command": ["npx", "-y", "..."], "enabled": true }
+            var serverObj = serverConfig.AsObject();
+            var transformed = new JsonObject();
+
+            // Change type from "stdio" to "local"
+            var originalType = serverObj["type"]?.GetValue<string>();
+            if (originalType == "stdio")
+            {
+                transformed["type"] = "local";
+            }
+            else if (originalType != null)
+            {
+                transformed["type"] = originalType;
+            }
+
+            // Combine command and args into a single command array
+            var command = serverObj["command"]?.GetValue<string>();
+            var args = serverObj["args"]?.AsArray();
+            
+            var commandArray = new JsonArray();
+            if (command != null)
+            {
+                commandArray.Add(command);
+            }
+            if (args != null)
+            {
+                foreach (var arg in args)
+                {
+                    commandArray.Add(arg?.DeepClone());
+                }
+            }
+            transformed["command"] = commandArray;
+
+            // Copy env to environment (OpenCode uses "environment" key)
+            var env = serverObj["env"]?.AsObject();
+            if (env != null)
+            {
+                transformed["environment"] = env.DeepClone();
+            }
+
+            // Add enabled property
+            transformed["enabled"] = true;
+
+            return transformed;
         }
 
         private HashSet<string> ReadLegacyMcpManifest(string manifestPath)

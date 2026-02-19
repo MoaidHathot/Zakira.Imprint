@@ -45,6 +45,13 @@ namespace Zakira.Imprint.Sdk
                     McpSubPath: ".roo",
                     McpFileName: "mcp.json",
                     McpRootKey: "mcpServers"),
+                ["opencode"] = new AgentDefinition(
+                    Name: "opencode",
+                    DetectionDir: ".opencode",
+                    SkillsSubPath: ".opencode" + Path.DirectorySeparatorChar + "skills",
+                    McpSubPath: "",
+                    McpFileName: "opencode.json",
+                    McpRootKey: "mcp"),
             };
 
         /// <summary>

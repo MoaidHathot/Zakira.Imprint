@@ -411,4 +411,163 @@ public class ImprintMergeMcpServersTests : IDisposable
         var doc = JsonNode.Parse(File.ReadAllText(_mcpJsonPath))!;
         Assert.NotNull(doc["servers"]?["server-a"]);
     }
+
+    [Fact]
+    public void Execute_Opencode_TransformsToLocalFormat()
+    {
+        // Setup: create .opencode directory so OpenCode is detected
+        var opencodePath = Path.Combine(_testDir, ".opencode");
+        Directory.CreateDirectory(opencodePath);
+
+        var fragment = CreateSimpleFragment("PackageA", "server-a");
+        var task = new ImprintMergeMcpServers
+        {
+            BuildEngine = new MockBuildEngine(),
+            ProjectDirectory = _testDir,
+            TargetAgents = "opencode",
+            McpFragmentFiles = new[] { new MockTaskItem(fragment) }
+        };
+
+        var result = task.Execute();
+
+        Assert.True(result);
+
+        // OpenCode stores mcp.json at project root, not in a subdirectory
+        var mcpPath = Path.Combine(_testDir, "opencode.json");
+        Assert.True(File.Exists(mcpPath), $"Expected opencode.json at {mcpPath}");
+
+        var doc = JsonNode.Parse(File.ReadAllText(mcpPath))!;
+        // OpenCode uses "mcp" as root key
+        Assert.NotNull(doc["mcp"]);
+        var server = doc["mcp"]!["server-a"]!;
+
+        // Verify transformation: type should be "local" instead of "stdio"
+        Assert.Equal("local", server["type"]!.GetValue<string>());
+
+        // Verify command is an array combining original command + args
+        var commandArray = server["command"]!.AsArray();
+        Assert.Equal(3, commandArray.Count);
+        Assert.Equal("npx", commandArray[0]!.GetValue<string>());
+        Assert.Equal("-y", commandArray[1]!.GetValue<string>());
+        Assert.Equal("@example/server-a", commandArray[2]!.GetValue<string>());
+
+        // Verify enabled property is set
+        Assert.True(server["enabled"]!.GetValue<bool>());
+    }
+
+    [Fact]
+    public void Execute_Opencode_TransformsEnvToEnvironment()
+    {
+        // Setup: create .opencode directory
+        var opencodePath = Path.Combine(_testDir, ".opencode");
+        Directory.CreateDirectory(opencodePath);
+
+        // Create a fragment with env property
+        var fragmentDir = Path.Combine(_testDir, "fragments");
+        Directory.CreateDirectory(fragmentDir);
+        var fragmentPath = Path.Combine(fragmentDir, "WithEnv.mcp.json");
+        File.WriteAllText(fragmentPath, """
+        {
+          "servers": {
+            "server-with-env": {
+              "type": "stdio",
+              "command": "node",
+              "args": ["server.js"],
+              "env": {
+                "API_KEY": "secret123",
+                "DEBUG": "true"
+              }
+            }
+          }
+        }
+        """);
+
+        var task = new ImprintMergeMcpServers
+        {
+            BuildEngine = new MockBuildEngine(),
+            ProjectDirectory = _testDir,
+            TargetAgents = "opencode",
+            McpFragmentFiles = new[] { new MockTaskItem(fragmentPath) }
+        };
+
+        var result = task.Execute();
+
+        Assert.True(result);
+
+        var mcpPath = Path.Combine(_testDir, "opencode.json");
+        var doc = JsonNode.Parse(File.ReadAllText(mcpPath))!;
+        var server = doc["mcp"]!["server-with-env"]!;
+
+        // Verify env is transformed to environment
+        Assert.NotNull(server["environment"]);
+        Assert.Equal("secret123", server["environment"]!["API_KEY"]!.GetValue<string>());
+        Assert.Equal("true", server["environment"]!["DEBUG"]!.GetValue<string>());
+
+        // Original env key should not be present
+        Assert.Null(server["env"]);
+    }
+
+    [Fact]
+    public void Execute_Copilot_KeepsStdioFormat()
+    {
+        // Ensure non-OpenCode agents keep the standard stdio format
+        var fragment = CreateSimpleFragment("PackageA", "server-a");
+        var task = CreateTask(fragment);
+
+        task.Execute();
+
+        var doc = JsonNode.Parse(File.ReadAllText(_mcpJsonPath))!;
+        var server = doc["servers"]!["server-a"]!;
+
+        // Should keep "stdio" type
+        Assert.Equal("stdio", server["type"]!.GetValue<string>());
+
+        // Should keep command as string, not array
+        Assert.Equal("npx", server["command"]!.GetValue<string>());
+
+        // Should keep args as separate array
+        var args = server["args"]!.AsArray();
+        Assert.Equal(2, args.Count);
+
+        // Should NOT have "enabled" property
+        Assert.Null(server["enabled"]);
+    }
+
+    [Fact]
+    public void Execute_Opencode_PreservesUserServers()
+    {
+        // Setup: create .opencode directory and existing config
+        var opencodePath = Path.Combine(_testDir, ".opencode");
+        Directory.CreateDirectory(opencodePath);
+
+        var mcpPath = Path.Combine(_testDir, "opencode.json");
+        File.WriteAllText(mcpPath, """
+        {
+          "mcp": {
+            "my-custom-server": {
+              "type": "local",
+              "command": ["node", "custom.js"],
+              "enabled": true
+            }
+          }
+        }
+        """);
+
+        var fragment = CreateSimpleFragment("PackageA", "server-a");
+        var task = new ImprintMergeMcpServers
+        {
+            BuildEngine = new MockBuildEngine(),
+            ProjectDirectory = _testDir,
+            TargetAgents = "opencode",
+            McpFragmentFiles = new[] { new MockTaskItem(fragment) }
+        };
+
+        task.Execute();
+
+        var doc = JsonNode.Parse(File.ReadAllText(mcpPath))!;
+        // User's server should be preserved
+        Assert.NotNull(doc["mcp"]?["my-custom-server"]);
+        // Managed server should be added
+        Assert.NotNull(doc["mcp"]?["server-a"]);
+    }
 }
