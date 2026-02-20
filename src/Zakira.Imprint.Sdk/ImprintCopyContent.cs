@@ -21,7 +21,6 @@ namespace Zakira.Imprint.Sdk
 
         /// <summary>
         /// The ImprintContent items to copy. Each item must have metadata:
-        /// - DestinationBase: The root destination directory (legacy, used as fallback)
         /// - PackageId: The NuGet package ID that owns this content
         /// - SourceBase: The root source directory (used to compute relative paths)
         /// Optional metadata:
@@ -165,9 +164,6 @@ namespace Zakira.Imprint.Sdk
                 // Write unified manifest
                 Directory.CreateDirectory(imprintDir);
                 WriteUnifiedManifest(imprintDir, manifestPackages);
-
-                // Also write legacy per-package manifests for backward compatibility
-                WriteLegacyManifests(imprintDir, manifestPackages);
 
                 // Ensure .imprint/.gitignore exists
                 EnsureImprintGitignore(imprintDir);
@@ -538,38 +534,6 @@ namespace Zakira.Imprint.Sdk
             File.WriteAllText(manifestPath, content);
         }
 
-        /// <summary>
-        /// Writes legacy per-package manifests for backward compatibility.
-        /// Uses the first agent's files as the file list (matches pre-multi-agent behavior).
-        /// </summary>
-        private void WriteLegacyManifests(string imprintDir,
-            Dictionary<string, Dictionary<string, List<string>>> manifestPackages)
-        {
-            foreach (var pkgKvp in manifestPackages)
-            {
-                var packageId = pkgKvp.Key;
-                var manifestPath = Path.Combine(imprintDir, $"{packageId}.manifest");
-
-                // Collect all files across all agents for the legacy manifest
-                var allFiles = pkgKvp.Value
-                    .SelectMany(a => a.Value)
-                    .Distinct(StringComparer.OrdinalIgnoreCase)
-                    .OrderBy(f => f)
-                    .ToList();
-
-                var manifestObj = new JsonObject
-                {
-                    ["packageId"] = packageId,
-                    ["files"] = new JsonArray(allFiles.Select(f => (JsonNode)JsonValue.Create(f)!).ToArray())
-                };
-
-                var options = GetJsonOptions();
-                var content = manifestObj.ToJsonString(options);
-                if (!content.EndsWith("\n")) content += "\n";
-                File.WriteAllText(manifestPath, content);
-            }
-        }
-
         private static JsonSerializerOptions GetJsonOptions()
         {
             return new JsonSerializerOptions
@@ -674,16 +638,6 @@ namespace Zakira.Imprint.Sdk
                 foreach (var dir in dirsToCheck.OrderByDescending(d => d.Length))
                 {
                     TryRemoveEmptyDirectory(dir);
-                }
-
-                // Clean up legacy manifests for removed packages
-                foreach (var packageId in removedPackages)
-                {
-                    var legacyManifestPath = Path.Combine(imprintDir, $"{packageId}.manifest");
-                    if (File.Exists(legacyManifestPath))
-                    {
-                        File.Delete(legacyManifestPath);
-                    }
                 }
             }
             catch (Exception ex)

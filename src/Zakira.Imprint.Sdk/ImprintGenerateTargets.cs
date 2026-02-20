@@ -20,7 +20,6 @@ namespace Zakira.Imprint.Sdk
         /// The &lt;Imprint&gt; items to process. Each item can have metadata:
         /// - Type: "Skill" (default) or "Mcp"
         /// - SuggestedPrefix: Author's suggested prefix for skill folders
-        /// - DestinationBase: Override for destination base (defaults to $(ImprintSkillsPath))
         /// </summary>
         [Required]
         public ITaskItem[] ImprintItems { get; set; } = Array.Empty<ITaskItem>();
@@ -171,7 +170,6 @@ namespace Zakira.Imprint.Sdk
                     var sourceBase = group.Key;
                     var firstItem = group.Value.First();
                     var suggestedPrefix = firstItem.GetMetadata("SuggestedPrefix");
-                    var destinationBase = firstItem.GetMetadata("DestinationBase");
                     
                     // Use glob pattern for the include
                     var includePattern = string.IsNullOrEmpty(sourceBase) 
@@ -179,16 +177,6 @@ namespace Zakira.Imprint.Sdk
                         : $"{sourceBase}**\\*";
 
                     sb.AppendLine($"    <ImprintContent Include=\"$({rootProperty}){includePattern}\">");
-                    
-                    // DestinationBase - use provided or default to $(ImprintSkillsPath)
-                    if (!string.IsNullOrEmpty(destinationBase))
-                    {
-                        sb.AppendLine($"      <DestinationBase>{destinationBase}</DestinationBase>");
-                    }
-                    else
-                    {
-                        sb.AppendLine("      <DestinationBase>$(ImprintSkillsPath)</DestinationBase>");
-                    }
 
                     sb.AppendLine($"      <PackageId>{PackageId}</PackageId>");
                     sb.AppendLine($"      <SourceBase>$({rootProperty}){sourceBase}</SourceBase>");

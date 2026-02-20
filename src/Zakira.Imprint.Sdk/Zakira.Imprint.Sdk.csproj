@@ -44,7 +44,7 @@
     <None Include="buildTransitive\Zakira.Imprint.Sdk.targets" Pack="true" PackagePath="buildTransitive" />
 
     <!-- Include package README -->
-    <None Include="..\..\README.md" Pack="true" PackagePath="" />
+    <None Include="..\..\assets\nuget\README.md" Pack="true" PackagePath="" />
 
     <!-- Include package icon -->
     <None Include="..\..\assets\Zakira.Imprint.icon.png" Pack="true" PackagePath="" />

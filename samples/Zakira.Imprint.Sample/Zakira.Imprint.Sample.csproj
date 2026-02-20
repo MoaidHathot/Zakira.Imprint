@@ -7,7 +7,7 @@
 
     <!-- Package metadata -->
     <PackageId>Zakira.Imprint.Sample</PackageId>
-    <Version>1.0.0</Version>
+    <Version>1.0.1</Version>
     <Authors>Moaid Hathot</Authors>
     <Copyright>Copyright (c) Moaid Hathot</Copyright>
     <Description>Sample NuGet package demonstrating how Zakira.Imprint works. Ships both a compiled string utility library and AI skills to show the Imprint pattern for packages that provide runtime code together with AI guidance.</Description>
@@ -54,7 +54,7 @@
   <ItemGroup>
     <!-- Zakira.Imprint.Sdk provides the copy/clean/MCP-merge logic.
          PrivateAssets excludes compile (no runtime dep on Sdk) but allows build targets to flow. -->
-    <PackageReference Include="Zakira.Imprint.Sdk" Version="1.0.0-preview">
+    <PackageReference Include="Zakira.Imprint.Sdk" Version="1.0.1-preview">
       <PrivateAssets>compile</PrivateAssets>
     </PackageReference>
   </ItemGroup>

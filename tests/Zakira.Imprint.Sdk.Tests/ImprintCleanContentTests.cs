@@ -25,16 +25,48 @@ public class ImprintCleanContentTests : IDisposable
         }
     }
 
-    private void WriteManifest(string packageId, string[] files)
+    /// <summary>
+    /// Writes a unified manifest (v2 format) with files for a single agent (default: copilot).
+    /// </summary>
+    private void WriteUnifiedManifest(string packageId, string[] files, string agent = "copilot")
     {
         var imprintDir = Path.Combine(_projectDir, ".imprint");
         Directory.CreateDirectory(imprintDir);
-        var manifestPath = Path.Combine(imprintDir, $"{packageId}.manifest");
-        var manifestObj = new JsonObject
+        var manifestPath = Path.Combine(imprintDir, "manifest.json");
+
+        JsonObject manifestObj;
+
+        // Load existing manifest or create new
+        if (File.Exists(manifestPath))
         {
-            ["packageId"] = packageId,
-            ["files"] = new JsonArray(files.Select(f => (JsonNode)JsonValue.Create(f)!).ToArray())
+            manifestObj = JsonNode.Parse(File.ReadAllText(manifestPath))?.AsObject() ?? new JsonObject();
+        }
+        else
+        {
+            manifestObj = new JsonObject { ["version"] = 2 };
+        }
+
+        // Ensure version is set
+        manifestObj["version"] = 2;
+
+        // Ensure packages object exists
+        if (manifestObj["packages"] == null)
+        {
+            manifestObj["packages"] = new JsonObject();
+        }
+
+        var packages = manifestObj["packages"]!.AsObject();
+
+        // Create or update package entry
+        var pkgEntry = new JsonObject
+        {
+            ["files"] = new JsonObject
+            {
+                [agent] = new JsonArray(files.Select(f => (JsonNode)JsonValue.Create(f)!).ToArray())
+            }
         };
+        packages[packageId] = pkgEntry;
+
         File.WriteAllText(manifestPath, manifestObj.ToJsonString(new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
     }
 
@@ -52,7 +84,7 @@ public class ImprintCleanContentTests : IDisposable
         // Arrange
         var file1 = CreateTrackedFile(".github/skills/hello.md");
         var file2 = CreateTrackedFile(".github/skills/world.md");
-        WriteManifest("Zakira.Imprint.Sample", new[] { file1, file2 });
+        WriteUnifiedManifest("Zakira.Imprint.Sample", new[] { file1, file2 });
 
         var task = new ImprintCleanContent
         {
@@ -67,7 +99,8 @@ public class ImprintCleanContentTests : IDisposable
         Assert.True(result);
         Assert.False(File.Exists(file1));
         Assert.False(File.Exists(file2));
-        Assert.False(File.Exists(Path.Combine(_projectDir, ".imprint", "Zakira.Imprint.Sample.manifest")));
+        // Unified manifest should be deleted when all packages are cleaned
+        Assert.False(File.Exists(Path.Combine(_projectDir, ".imprint", "manifest.json")));
     }
 
     [Fact]
@@ -75,7 +108,7 @@ public class ImprintCleanContentTests : IDisposable
     {
         // Arrange
         var file1 = CreateTrackedFile(".github/skills/sub/deep.md");
-        WriteManifest("Pkg", new[] { file1 });
+        WriteUnifiedManifest("Pkg", new[] { file1 });
 
         var task = new ImprintCleanContent
         {
@@ -95,7 +128,7 @@ public class ImprintCleanContentTests : IDisposable
     {
         // Arrange
         var file1 = CreateTrackedFile("out/file.md");
-        WriteManifest("Pkg", new[] { file1 });
+        WriteUnifiedManifest("Pkg", new[] { file1 });
         // Create .gitignore in .imprint
         var gitignore = Path.Combine(_projectDir, ".imprint", ".gitignore");
         File.WriteAllText(gitignore, "*\n");
@@ -119,8 +152,8 @@ public class ImprintCleanContentTests : IDisposable
         // Arrange
         var file1 = CreateTrackedFile("out/a.md");
         var file2 = CreateTrackedFile("out/b.md");
-        WriteManifest("Pkg.A", new[] { file1 });
-        WriteManifest("Pkg.B", new[] { file2 });
+        WriteUnifiedManifest("Pkg.A", new[] { file1 });
+        WriteUnifiedManifest("Pkg.B", new[] { file2 });
 
         // Only clean Pkg.A by removing its manifest and re-creating scenario
         // Actually the task cleans ALL manifests, so let's test that both get cleaned
@@ -141,10 +174,10 @@ public class ImprintCleanContentTests : IDisposable
     [Fact]
     public void HandlesCorruptManifest_Gracefully()
     {
-        // Arrange
+        // Arrange - create a corrupt unified manifest
         var imprintDir = Path.Combine(_projectDir, ".imprint");
         Directory.CreateDirectory(imprintDir);
-        File.WriteAllText(Path.Combine(imprintDir, "Bad.manifest"), "{ not valid json !!!");
+        File.WriteAllText(Path.Combine(imprintDir, "manifest.json"), "{ not valid json !!!");
 
         var task = new ImprintCleanContent
         {
@@ -189,7 +222,7 @@ public class ImprintCleanContentTests : IDisposable
     {
         // Arrange - manifest references files that don't exist
         var fakeFile = Path.Combine(_projectDir, "gone", "deleted.md");
-        WriteManifest("Pkg", new[] { fakeFile });
+        WriteUnifiedManifest("Pkg", new[] { fakeFile });
 
         var task = new ImprintCleanContent
         {
@@ -200,16 +233,16 @@ public class ImprintCleanContentTests : IDisposable
         // Act
         var result = task.Execute();
 
-        // Assert
+        // Assert - manifest should be deleted even if files don't exist
         Assert.True(result);
-        Assert.False(File.Exists(Path.Combine(_projectDir, ".imprint", "Pkg.manifest")));
+        Assert.False(File.Exists(Path.Combine(_projectDir, ".imprint", "manifest.json")));
     }
 
     [Fact]
     public void EmptyFilesArray_DeletesManifest()
     {
         // Arrange
-        WriteManifest("Empty", Array.Empty<string>());
+        WriteUnifiedManifest("Empty", Array.Empty<string>());
 
         var task = new ImprintCleanContent
         {
@@ -220,9 +253,9 @@ public class ImprintCleanContentTests : IDisposable
         // Act
         var result = task.Execute();
 
-        // Assert
+        // Assert - manifest should be deleted
         Assert.True(result);
-        Assert.False(File.Exists(Path.Combine(_projectDir, ".imprint", "Empty.manifest")));
+        Assert.False(File.Exists(Path.Combine(_projectDir, ".imprint", "manifest.json")));
     }
 
     [Fact]
@@ -257,7 +290,6 @@ public class ImprintCleanContentTests : IDisposable
         var copiedFile = Path.Combine(_projectDir, ".github", "skills", "guide.md");
         Assert.True(File.Exists(copiedFile), $"Expected copied file at {copiedFile}");
         Assert.True(File.Exists(Path.Combine(_projectDir, ".imprint", "manifest.json")), "Unified manifest should exist");
-        Assert.True(File.Exists(Path.Combine(_projectDir, ".imprint", "Zakira.Imprint.Guide.manifest")), "Legacy manifest should exist");
 
         // Step 2: Clean
         var cleanTask = new ImprintCleanContent
@@ -272,7 +304,6 @@ public class ImprintCleanContentTests : IDisposable
         // Assert - everything cleaned up
         Assert.False(File.Exists(copiedFile), "Copied file should be deleted");
         Assert.False(File.Exists(Path.Combine(_projectDir, ".imprint", "manifest.json")), "Unified manifest should be deleted");
-        Assert.False(File.Exists(Path.Combine(_projectDir, ".imprint", "Zakira.Imprint.Guide.manifest")), "Legacy manifest should be deleted");
     }
 
     [Fact]
@@ -281,7 +312,7 @@ public class ImprintCleanContentTests : IDisposable
         // Arrange - create a tracked file and an untracked file in the same directory
         var trackedFile = CreateTrackedFile(".github/skills/tracked.md");
         var untrackedFile = CreateTrackedFile(".github/skills/untracked.md");
-        WriteManifest("Pkg", new[] { trackedFile }); // only tracks one file
+        WriteUnifiedManifest("Pkg", new[] { trackedFile }); // only tracks one file
 
         var task = new ImprintCleanContent
         {

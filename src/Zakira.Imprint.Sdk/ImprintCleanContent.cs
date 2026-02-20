@@ -11,7 +11,7 @@ namespace Zakira.Imprint.Sdk
 {
     /// <summary>
     /// MSBuild task that cleans files previously copied by ImprintCopyContent.
-    /// Supports both unified manifest.json (v2) and legacy per-package .manifest files.
+    /// Uses the unified manifest.json (v2) to track files.
     /// Also cleans up associated .gitignore entries in skill directories.
     /// </summary>
     public class ImprintCleanContent : Task
@@ -55,21 +55,16 @@ namespace Zakira.Imprint.Sdk
                 var allDeletedDirs = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 var gitignoresToClean = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
 
-                // Try unified manifest first (v2)
+                // Try unified manifest (v2)
                 var unifiedManifestPath = Path.Combine(imprintDir, "manifest.json");
-                var cleanedFromUnified = false;
 
                 if (File.Exists(unifiedManifestPath))
                 {
-                    cleanedFromUnified = CleanFromUnifiedManifest(unifiedManifestPath, allDeletedDirs, gitignoresToClean);
+                    CleanFromUnifiedManifest(unifiedManifestPath, allDeletedDirs, gitignoresToClean);
                 }
-
-                // Also process legacy per-package manifests (backward compatibility)
-                CleanFromLegacyManifests(imprintDir, allDeletedDirs, gitignoresToClean);
-
-                if (!cleanedFromUnified && allDeletedDirs.Count == 0)
+                else
                 {
-                    Log.LogMessage(MessageImportance.Normal, "Zakira.Imprint.Sdk: No manifests found, skipping content clean.");
+                    Log.LogMessage(MessageImportance.Normal, "Zakira.Imprint.Sdk: No manifest found, skipping content clean.");
                     return true;
                 }
 
@@ -225,69 +220,6 @@ namespace Zakira.Imprint.Sdk
         }
 
         /// <summary>
-        /// Cleans files tracked in legacy per-package .manifest files.
-        /// </summary>
-        private void CleanFromLegacyManifests(
-            string imprintDir,
-            HashSet<string> allDeletedDirs,
-            Dictionary<string, HashSet<string>> gitignoresToClean)
-        {
-            var manifestFiles = Directory.GetFiles(imprintDir, "*.manifest");
-            if (manifestFiles.Length == 0) return;
-
-            foreach (var manifestPath in manifestFiles)
-            {
-                try
-                {
-                    var manifestText = File.ReadAllText(manifestPath);
-                    var manifestDoc = JsonNode.Parse(manifestText);
-                    var packageId = manifestDoc?["packageId"]?.GetValue<string>() ?? Path.GetFileNameWithoutExtension(manifestPath);
-                    var filesArray = manifestDoc?["files"]?.AsArray();
-
-                    if (filesArray == null || filesArray.Count == 0)
-                    {
-                        Log.LogMessage(MessageImportance.Normal, "Zakira.Imprint.Sdk: Manifest for {0} has no files.", packageId);
-                        File.Delete(manifestPath);
-                        continue;
-                    }
-
-                    var deletedCount = 0;
-                    foreach (var fileNode in filesArray)
-                    {
-                        var filePath = fileNode?.GetValue<string>();
-                        if (string.IsNullOrEmpty(filePath)) continue;
-
-                        var dir = Path.GetDirectoryName(filePath);
-
-                        if (File.Exists(filePath))
-                        {
-                            File.Delete(filePath);
-                            deletedCount++;
-
-                            if (!string.IsNullOrEmpty(dir))
-                            {
-                                allDeletedDirs.Add(dir);
-                            }
-                        }
-
-                        // Track gitignore cleanup needed
-                        if (!string.IsNullOrEmpty(dir))
-                        {
-                            TrackGitignoreCleanup(gitignoresToClean, dir, packageId);
-                        }
-                    }
-
-                    File.Delete(manifestPath);
-                    Log.LogMessage(MessageImportance.High, "Zakira.Imprint.Sdk: Cleaned {0} file(s) from {1} (legacy manifest)", deletedCount, packageId);
-                }
-                catch (Exception ex)
-                {
-                    Log.LogWarning("Zakira.Imprint.Sdk: Failed to process manifest {0}: {1}", manifestPath, ex.Message);
-                }
-            }
-        }
-
-        /// <summary>
         /// Tracks which package's entries need to be cleaned from which gitignore files.
         /// </summary>
         private void TrackGitignoreCleanup(
@@ -433,12 +365,11 @@ namespace Zakira.Imprint.Sdk
             {
                 if (!Directory.Exists(imprintDir)) return;
 
-                var remainingManifests = Directory.GetFiles(imprintDir, "*.manifest");
                 var hasUnifiedManifest = File.Exists(Path.Combine(imprintDir, "manifest.json"));
 
-                if (remainingManifests.Length == 0 && !hasUnifiedManifest)
+                if (!hasUnifiedManifest)
                 {
-                    // No more manifests - remove .gitignore and the directory
+                    // No manifest - remove .gitignore and the directory
                     var gitignorePath = Path.Combine(imprintDir, ".gitignore");
                     if (File.Exists(gitignorePath))
                     {

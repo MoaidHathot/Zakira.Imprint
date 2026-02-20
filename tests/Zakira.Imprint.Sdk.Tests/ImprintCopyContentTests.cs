@@ -73,14 +73,6 @@ public class ImprintCopyContentTests : IDisposable
         Assert.True(File.Exists(expectedDest), $"Expected file at {expectedDest}");
         Assert.Equal("# Hello", File.ReadAllText(expectedDest));
 
-        // Verify legacy per-package manifest
-        var manifestPath = Path.Combine(_destDir, ".imprint", "Zakira.Imprint.Sample.manifest");
-        Assert.True(File.Exists(manifestPath), "Legacy manifest should exist");
-        var manifestDoc = JsonNode.Parse(File.ReadAllText(manifestPath));
-        Assert.Equal("Zakira.Imprint.Sample", manifestDoc!["packageId"]!.GetValue<string>());
-        var files = manifestDoc["files"]!.AsArray();
-        Assert.Single(files);
-
         // Verify unified manifest
         var unifiedPath = Path.Combine(_destDir, ".imprint", "manifest.json");
         Assert.True(File.Exists(unifiedPath), "Unified manifest should exist");
@@ -117,9 +109,11 @@ public class ImprintCopyContentTests : IDisposable
         Assert.True(File.Exists(Path.Combine(skillsDir, "file1.md")));
         Assert.True(File.Exists(Path.Combine(skillsDir, "sub", "file2.md")));
 
-        var manifestPath = Path.Combine(_destDir, ".imprint", "MyPkg.manifest");
-        var manifestDoc = JsonNode.Parse(File.ReadAllText(manifestPath));
-        Assert.Equal(2, manifestDoc!["files"]!.AsArray().Count);
+        // Verify unified manifest has both files
+        var unifiedPath = Path.Combine(_destDir, ".imprint", "manifest.json");
+        var unified = JsonNode.Parse(File.ReadAllText(unifiedPath));
+        var filesArray = unified!["packages"]!["MyPkg"]!["files"]!["copilot"]!.AsArray();
+        Assert.Equal(2, filesArray.Count);
     }
 
     [Fact]
@@ -146,10 +140,12 @@ public class ImprintCopyContentTests : IDisposable
 
         // Assert
         Assert.True(result);
-        Assert.True(File.Exists(Path.Combine(_destDir, ".imprint", "Package.One.manifest")));
-        Assert.True(File.Exists(Path.Combine(_destDir, ".imprint", "Package.Two.manifest")));
-        // Unified manifest should also exist
-        Assert.True(File.Exists(Path.Combine(_destDir, ".imprint", "manifest.json")));
+        // Unified manifest should have both packages
+        var unifiedPath = Path.Combine(_destDir, ".imprint", "manifest.json");
+        Assert.True(File.Exists(unifiedPath));
+        var unified = JsonNode.Parse(File.ReadAllText(unifiedPath));
+        Assert.NotNull(unified!["packages"]!["Package.One"]);
+        Assert.NotNull(unified!["packages"]!["Package.Two"]);
     }
 
     [Fact]
@@ -204,8 +200,7 @@ public class ImprintCopyContentTests : IDisposable
 
         // Assert - succeeds but skips the item, no manifest written
         Assert.True(result);
-        Assert.False(Directory.Exists(Path.Combine(_destDir, ".imprint")) &&
-                     Directory.GetFiles(Path.Combine(_destDir, ".imprint"), "*.manifest").Length > 0);
+        Assert.False(File.Exists(Path.Combine(_destDir, ".imprint", "manifest.json")));
     }
 
     [Fact]
@@ -413,9 +408,10 @@ public class ImprintCopyContentTests : IDisposable
         Assert.Equal("content", File.ReadAllText(destFile));
 
         // Manifest should still be valid
-        var manifestPath = Path.Combine(_destDir, ".imprint", "Pkg.manifest");
-        var manifestDoc = JsonNode.Parse(File.ReadAllText(manifestPath));
-        Assert.Single(manifestDoc!["files"]!.AsArray());
+        var unifiedPath = Path.Combine(_destDir, ".imprint", "manifest.json");
+        var unified = JsonNode.Parse(File.ReadAllText(unifiedPath));
+        var filesArray = unified!["packages"]!["Pkg"]!["files"]!["copilot"]!.AsArray();
+        Assert.Single(filesArray);
     }
 
     #region Prefix Configuration Tests
@@ -836,7 +832,8 @@ public class ImprintCopyContentTests : IDisposable
         // Verify Package.One files exist
         var skillFile = Path.Combine(_destDir, ".github", "skills", "SkillA", "SKILL.md");
         Assert.True(File.Exists(skillFile));
-        Assert.True(File.Exists(Path.Combine(_destDir, ".imprint", "Package.One.manifest")));
+        var unifiedPath = Path.Combine(_destDir, ".imprint", "manifest.json");
+        Assert.True(File.Exists(unifiedPath));
 
         // Act - Second build WITHOUT Package.One (simulate package removal)
         var src2 = CreateSourceFile("SkillB/SKILL.md", "content from pkg2");
@@ -856,8 +853,11 @@ public class ImprintCopyContentTests : IDisposable
 
         // Assert - Package.One files should be removed
         Assert.False(File.Exists(skillFile), "Package.One file should be cleaned up");
-        Assert.False(File.Exists(Path.Combine(_destDir, ".imprint", "Package.One.manifest")), 
-            "Package.One manifest should be cleaned up");
+        
+        // Unified manifest should only have Package.Two
+        var unified = JsonNode.Parse(File.ReadAllText(unifiedPath));
+        Assert.Null(unified!["packages"]!["Package.One"]);
+        Assert.NotNull(unified!["packages"]!["Package.Two"]);
         
         // Package.Two files should exist
         var skillFile2 = Path.Combine(_destDir, ".github", "skills", "SkillB", "SKILL.md");

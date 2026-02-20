@@ -82,7 +82,6 @@ When you run `dotnet pack` on a project with `<Imprint>` items, the `Imprint_Gen
 
   <ItemGroup>
     <ImprintContent Include="$(_Imprint_MyPackage_Root)skills\**\*">
-      <DestinationBase>$(ImprintSkillsPath)</DestinationBase>
       <PackageId>MyPackage</PackageId>
       <SourceBase>$(_Imprint_MyPackage_Root)skills\</SourceBase>
     </ImprintContent>
@@ -181,7 +180,7 @@ Solution: Use `<ImprintPrefix>` on one of the packages.
 
 Imprint uses a manifest system to track deployed files for incremental updates and cleanup.
 
-### Unified Manifest (v2)
+### Unified Manifest
 
 **Location:** `.imprint/manifest.json`
 
@@ -209,13 +208,6 @@ Imprint uses a manifest system to track deployed files for incremental updates a
 }
 ```
 
-### Legacy Manifests
-
-For backward compatibility, per-package manifests are also written:
-
-- **Skills:** `.imprint/{PackageId}.manifest`
-- **MCP:** `.vscode/.imprint-mcp-manifest`, `.claude/.imprint-mcp-manifest`, etc.
-
 ---
 
 ## Cleanup Operations
@@ -235,7 +227,7 @@ The `ImprintCleanContent` task runs during `dotnet clean`:
 
 **Source:** `src/Zakira.Imprint.Sdk/ImprintCleanContent.cs`
 
-1. Reads unified manifest (falls back to legacy manifests)
+1. Reads the unified manifest
 2. Deletes all tracked files
 3. Cleans `.gitignore` entries
 4. Removes empty directories

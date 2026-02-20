@@ -200,32 +200,6 @@ public class MultiAgentTests : IDisposable
     }
 
     [Fact]
-    public void Copy_TwoAgents_LegacyManifest_ContainsAllFiles()
-    {
-        var src = CreateSourceFile("guide.md", "# Guide");
-        var task = new ImprintCopyContent
-        {
-            BuildEngine = new MockBuildEngine(),
-            ProjectDirectory = _projectDir,
-            TargetAgents = "copilot;claude",
-            ContentItems = new ITaskItem[] { CreateContentItem(src, "Zakira.Imprint.Sample") }
-        };
-
-        task.Execute();
-
-        var legacyPath = Path.Combine(_projectDir, ".imprint", "Zakira.Imprint.Sample.manifest");
-        Assert.True(File.Exists(legacyPath), "Legacy manifest should exist");
-
-        var legacy = JsonNode.Parse(File.ReadAllText(legacyPath))!;
-        var files = legacy["files"]!.AsArray();
-        // Should contain files from both agents
-        Assert.Equal(2, files.Count);
-        var paths = files.Select(f => f!.GetValue<string>()).ToList();
-        Assert.Contains(paths, p => p.Contains(".github"));
-        Assert.Contains(paths, p => p.Contains(".claude"));
-    }
-
-    [Fact]
     public void Copy_MultiplePackages_TwoAgents()
     {
         var src1 = CreateSourceFile("pkg1/file.md", "pkg1");
@@ -252,10 +226,6 @@ public class MultiAgentTests : IDisposable
         // Cursor
         Assert.True(File.Exists(Path.Combine(_projectDir, ".cursor", "rules", "pkg1", "file.md")));
         Assert.True(File.Exists(Path.Combine(_projectDir, ".cursor", "rules", "pkg2", "file.md")));
-
-        // Both legacy manifests exist
-        Assert.True(File.Exists(Path.Combine(_projectDir, ".imprint", "Package.One.manifest")));
-        Assert.True(File.Exists(Path.Combine(_projectDir, ".imprint", "Package.Two.manifest")));
 
         // Unified manifest has both packages
         var manifest = JsonNode.Parse(File.ReadAllText(Path.Combine(_projectDir, ".imprint", "manifest.json")))!;
@@ -762,154 +732,6 @@ public class MultiAgentTests : IDisposable
         Assert.False(File.Exists(Path.Combine(_projectDir, ".github", "skills", "skill.md")));
         Assert.False(File.Exists(Path.Combine(_projectDir, ".claude", "skills", "skill.md")));
         Assert.False(File.Exists(manifestPath), "Unified manifest should be deleted after content clean");
-    }
-
-    #endregion
-
-    // ===================================================================
-    // BACKWARD COMPATIBILITY Tests
-    // ===================================================================
-
-    #region Backward Compatibility
-
-    [Fact]
-    public void BackwardCompat_V1LegacyManifest_CleanStillWorks()
-    {
-        // Simulate a v1 legacy manifest written by older Imprint (pre-multi-agent)
-        var file1 = Path.Combine(_projectDir, ".github", "skills", "old-skill.md");
-        Directory.CreateDirectory(Path.GetDirectoryName(file1)!);
-        File.WriteAllText(file1, "# Old Skill");
-
-        var imprintDir = Path.Combine(_projectDir, ".imprint");
-        Directory.CreateDirectory(imprintDir);
-        var legacyManifest = new JsonObject
-        {
-            ["packageId"] = "OldPackage",
-            ["files"] = new JsonArray(JsonValue.Create(file1)!)
-        };
-        File.WriteAllText(
-            Path.Combine(imprintDir, "OldPackage.manifest"),
-            legacyManifest.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
-
-        // Clean should still work with just the legacy manifest (no unified manifest)
-        var cleanTask = new ImprintCleanContent
-        {
-            BuildEngine = new MockBuildEngine(),
-            ProjectDirectory = _projectDir
-        };
-        var result = cleanTask.Execute();
-
-        Assert.True(result);
-        Assert.False(File.Exists(file1), "File should be deleted via legacy manifest");
-        Assert.False(File.Exists(Path.Combine(imprintDir, "OldPackage.manifest")), "Legacy manifest should be deleted");
-    }
-
-    [Fact]
-    public void BackwardCompat_MixedManifests_BothProcessed()
-    {
-        // Unified manifest tracks one file set
-        var file1 = Path.Combine(_projectDir, ".github", "skills", "new-skill.md");
-        Directory.CreateDirectory(Path.GetDirectoryName(file1)!);
-        File.WriteAllText(file1, "new");
-
-        var file2 = Path.Combine(_projectDir, ".claude", "skills", "new-skill.md");
-        Directory.CreateDirectory(Path.GetDirectoryName(file2)!);
-        File.WriteAllText(file2, "new");
-
-        var imprintDir = Path.Combine(_projectDir, ".imprint");
-        Directory.CreateDirectory(imprintDir);
-
-        // Write unified manifest
-        var unifiedManifest = new JsonObject
-        {
-            ["version"] = 2,
-            ["packages"] = new JsonObject
-            {
-                ["NewPkg"] = new JsonObject
-                {
-                    ["files"] = new JsonObject
-                    {
-                        ["copilot"] = new JsonArray(JsonValue.Create(file1)!),
-                        ["claude"] = new JsonArray(JsonValue.Create(file2)!)
-                    }
-                }
-            }
-        };
-        File.WriteAllText(
-            Path.Combine(imprintDir, "manifest.json"),
-            unifiedManifest.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
-
-        // Legacy manifest tracks a different old file
-        var file3 = Path.Combine(_projectDir, ".github", "skills", "old-legacy.md");
-        Directory.CreateDirectory(Path.GetDirectoryName(file3)!);
-        File.WriteAllText(file3, "old");
-
-        var legacyManifest = new JsonObject
-        {
-            ["packageId"] = "OldPkg",
-            ["files"] = new JsonArray(JsonValue.Create(file3)!)
-        };
-        File.WriteAllText(
-            Path.Combine(imprintDir, "OldPkg.manifest"),
-            legacyManifest.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
-
-        // Clean
-        var cleanTask = new ImprintCleanContent
-        {
-            BuildEngine = new MockBuildEngine(),
-            ProjectDirectory = _projectDir
-        };
-        var result = cleanTask.Execute();
-
-        Assert.True(result);
-        Assert.False(File.Exists(file1), "Unified-tracked file should be deleted");
-        Assert.False(File.Exists(file2), "Unified-tracked claude file should be deleted");
-        Assert.False(File.Exists(file3), "Legacy-tracked file should be deleted");
-    }
-
-    [Fact]
-    public void BackwardCompat_LegacyMcpManifest_CleanStillWorks()
-    {
-        // Simulate a legacy MCP setup (pre-multi-agent) with .vscode/.imprint-mcp-manifest
-        var vscodeDir = Path.Combine(_projectDir, ".vscode");
-        Directory.CreateDirectory(vscodeDir);
-
-        // Write mcp.json with managed + user servers
-        var mcpDoc = new JsonObject
-        {
-            ["servers"] = new JsonObject
-            {
-                ["old-managed"] = new JsonObject { ["type"] = "stdio", ["command"] = "npx" },
-                ["user-server"] = new JsonObject { ["type"] = "stdio", ["command"] = "node" }
-            }
-        };
-        File.WriteAllText(Path.Combine(vscodeDir, "mcp.json"),
-            mcpDoc.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
-
-        // Write legacy manifest
-        var legacyManifest = new JsonObject
-        {
-            ["managedServers"] = new JsonArray("old-managed")
-        };
-        File.WriteAllText(Path.Combine(vscodeDir, ".imprint-mcp-manifest"),
-            legacyManifest.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
-
-        // Clean (no unified manifest exists)
-        var cleanTask = new ImprintCleanMcpServers
-        {
-            BuildEngine = new MockBuildEngine(),
-            ProjectDirectory = _projectDir
-        };
-        var result = cleanTask.Execute();
-
-        Assert.True(result);
-        // mcp.json should still exist with user server
-        Assert.True(File.Exists(Path.Combine(vscodeDir, "mcp.json")));
-        var doc = JsonNode.Parse(File.ReadAllText(Path.Combine(vscodeDir, "mcp.json")))!;
-        Assert.Null(doc["servers"]?["old-managed"]);
-        Assert.NotNull(doc["servers"]?["user-server"]);
-        // Legacy manifest should be deleted
-        Assert.False(File.Exists(Path.Combine(vscodeDir, ".imprint-mcp-manifest")));
     }
 
     #endregion
