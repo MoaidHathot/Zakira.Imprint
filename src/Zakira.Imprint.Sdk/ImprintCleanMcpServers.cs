@@ -32,7 +32,7 @@ namespace Zakira.Imprint.Sdk
         /// <summary>
         /// Default agents. Accepted for compatibility.
         /// </summary>
-        public string DefaultAgents { get; set; } = "copilot";
+        public string DefaultAgents { get; set; } = "";
 
         public override bool Execute()
         {

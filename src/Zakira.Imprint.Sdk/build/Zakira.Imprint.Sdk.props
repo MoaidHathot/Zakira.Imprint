@@ -7,15 +7,22 @@
   -->
 
   <PropertyGroup>
-    <!-- Multi-agent support: auto-detect which AI agents are present -->
-    <ImprintAutoDetectAgents Condition="'$(ImprintAutoDetectAgents)' == ''">true</ImprintAutoDetectAgents>
+    <!-- 
+      Multi-agent targeting configuration:
+      
+      ImprintTargetAgents: Explicit list of agents (semicolon-separated: copilot;claude;cursor)
+        - Not set (or set to _auto_): auto-detect agents from project directories
+        - Set to empty string: explicit opt-out, no content will be created
+        - Set to agent list: use exactly those agents
+      
+      We use a sentinel value "_auto_" to distinguish between:
+        - "user didn't set this property" (default to auto-detect)
+        - "user explicitly set this to empty" (opt-out)
+    -->
+    <ImprintTargetAgents Condition="'$(ImprintTargetAgents)' == ''">_auto_</ImprintTargetAgents>
 
-    <!-- Explicit target agents (semicolon-separated: copilot;claude;cursor) -->
-    <!-- When set, disables auto-detection -->
-    <ImprintTargetAgents Condition="'$(ImprintTargetAgents)' == ''"></ImprintTargetAgents>
-
-    <!-- Default agents when auto-detection finds nothing -->
-    <ImprintDefaultAgents Condition="'$(ImprintDefaultAgents)' == ''">copilot</ImprintDefaultAgents>
+    <!-- Default agents when auto-detection finds nothing (empty = no fallback) -->
+    <ImprintDefaultAgents Condition="'$(ImprintDefaultAgents)' == ''"></ImprintDefaultAgents>
 
     <!-- Legacy: Default destination paths (still used as fallback for single-agent mode) -->
     <ImprintSkillsPath Condition="'$(ImprintSkillsPath)' == ''">$(MSBuildProjectDirectory)\.github\skills\</ImprintSkillsPath>

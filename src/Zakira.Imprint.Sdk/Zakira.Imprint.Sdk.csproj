@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <PackageId>Zakira.Imprint.Sdk</PackageId>
-    <Version>1.0.0-preview</Version>
+    <Version>1.0.1-preview</Version>
     <Authors>Moaid Hathot</Authors>
     <Copyright>Copyright (c) Moaid Hathot</Copyright>
     <Description>SDK for Imprint AI Skills packages. Provides MSBuild tasks for copying skill files, prompts, and merging MCP server configurations at build time. Skill package authors reference this SDK to get standardized copy/clean/MCP-merge behavior without duplicating MSBuild logic.</Description>

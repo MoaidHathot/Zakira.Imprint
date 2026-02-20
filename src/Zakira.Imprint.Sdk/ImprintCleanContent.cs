@@ -38,7 +38,7 @@ namespace Zakira.Imprint.Sdk
         /// <summary>
         /// Default agents. Accepted for compatibility.
         /// </summary>
-        public string DefaultAgents { get; set; } = "copilot";
+        public string DefaultAgents { get; set; } = "";
 
         public override bool Execute()
         {
@@ -171,8 +171,49 @@ namespace Zakira.Imprint.Sdk
                     Log.LogMessage(MessageImportance.Normal, "Zakira.Imprint.Sdk: Cleaned files from package {0}", packageId);
                 }
 
-                // Delete the unified manifest
-                File.Delete(manifestPath);
+                // Re-read the manifest and update it (preserving the mcp section for ImprintCleanMcpServers)
+                try
+                {
+                    var currentText = File.ReadAllText(manifestPath);
+                    var currentDoc = JsonNode.Parse(currentText)?.AsObject();
+                    if (currentDoc != null)
+                    {
+                        // Remove packages section
+                        currentDoc.Remove("packages");
+                        
+                        // Check if mcp section still has data
+                        var hasMcpData = currentDoc["mcp"]?.AsObject()?.Count > 0;
+                        
+                        if (!hasMcpData)
+                        {
+                            // No more data - delete the manifest
+                            File.Delete(manifestPath);
+                        }
+                        else
+                        {
+                            // Write back without packages section (mcp will be cleaned by ImprintCleanMcpServers)
+                            var options = new System.Text.Json.JsonSerializerOptions
+                            {
+                                WriteIndented = true,
+                                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                                TypeInfoResolver = new System.Text.Json.Serialization.Metadata.DefaultJsonTypeInfoResolver()
+                            };
+                            var content = currentDoc.ToJsonString(options);
+                            if (!content.EndsWith("\n")) content += "\n";
+                            File.WriteAllText(manifestPath, content);
+                        }
+                    }
+                    else
+                    {
+                        File.Delete(manifestPath);
+                    }
+                }
+                catch
+                {
+                    // If we fail to update, just delete the manifest as before
+                    File.Delete(manifestPath);
+                }
+
                 Log.LogMessage(MessageImportance.High, "Zakira.Imprint.Sdk: Cleaned {0} file(s) via unified manifest.", totalDeleted);
                 return true;
             }

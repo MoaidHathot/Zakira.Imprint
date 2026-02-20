@@ -35,7 +35,7 @@ namespace Zakira.Imprint.Sdk
         /// <summary>
         /// Default agents when auto-detection finds nothing.
         /// </summary>
-        public string DefaultAgents { get; set; } = "copilot";
+        public string DefaultAgents { get; set; } = "";
 
         public override bool Execute()
         {
@@ -83,6 +83,15 @@ namespace Zakira.Imprint.Sdk
 
                 // Resolve target agents
                 var agents = AgentConfig.ResolveAgents(ProjectDirectory, TargetAgents, AutoDetectAgents, DefaultAgents);
+                
+                if (agents.Count == 0)
+                {
+                    Log.LogMessage(MessageImportance.Normal, 
+                        "Zakira.Imprint.Sdk: No target agents detected or configured. Skipping MCP merge. " +
+                        "Set ImprintTargetAgents or create an agent directory (e.g., .github, .claude, .opencode) to enable.");
+                    return true;
+                }
+                
                 Log.LogMessage(MessageImportance.Normal, "Zakira.Imprint.Sdk: Merging MCP servers for agents: {0}", string.Join(", ", agents));
 
                 // Track MCP data for unified manifest

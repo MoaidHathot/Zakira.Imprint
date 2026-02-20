@@ -967,6 +967,34 @@ public class MultiAgentTests : IDisposable
     }
 
     [Fact]
+    public void AutoDetect_NoAgentsDetected_NoDefaults_CreatesNoFiles()
+    {
+        // No detection directories created and no defaults set (new 1.0.1 behavior)
+        var src = CreateSourceFile("skill.md", "# Skill");
+        var mockEngine = new MockBuildEngine();
+        var task = new ImprintCopyContent
+        {
+            BuildEngine = mockEngine,
+            ProjectDirectory = _projectDir,
+            AutoDetectAgents = true,
+            DefaultAgents = "", // Empty - no fallback
+            ContentItems = new ITaskItem[] { CreateContentItem(src, "Pkg") }
+        };
+
+        var result = task.Execute();
+
+        // Should succeed but create no files
+        Assert.True(result);
+        Assert.False(File.Exists(Path.Combine(_projectDir, ".github", "skills", "skill.md")), "No copilot file");
+        Assert.False(File.Exists(Path.Combine(_projectDir, ".claude", "skills", "skill.md")), "No claude file");
+        Assert.False(File.Exists(Path.Combine(_projectDir, ".cursor", "rules", "skill.md")), "No cursor file");
+        Assert.False(Directory.Exists(Path.Combine(_projectDir, ".imprint")), "No manifest directory");
+        
+        // Should log info message about no agents
+        Assert.Contains(mockEngine.Messages, m => m.Contains("No target agents"));
+    }
+
+    [Fact]
     public void ExplicitAgents_OverridesAutoDetect()
     {
         // Create detection directory for copilot

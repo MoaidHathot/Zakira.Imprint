@@ -53,7 +53,7 @@ namespace Zakira.Imprint.Sdk
         /// <summary>
         /// Default agents when auto-detection finds nothing (semicolon-separated).
         /// </summary>
-        public string DefaultAgents { get; set; } = "copilot";
+        public string DefaultAgents { get; set; } = "";
 
         /// <summary>
         /// Global setting: whether to prefix skill folders with package identifier.
@@ -86,6 +86,15 @@ namespace Zakira.Imprint.Sdk
 
                 // Resolve target agents
                 var agents = AgentConfig.ResolveAgents(ProjectDirectory, TargetAgents, AutoDetectAgents, DefaultAgents);
+                
+                if (agents.Count == 0)
+                {
+                    Log.LogMessage(MessageImportance.Normal, 
+                        "Zakira.Imprint.Sdk: No target agents detected or configured. Skipping file copy. " +
+                        "Set ImprintTargetAgents or create an agent directory (e.g., .github, .claude, .opencode) to enable.");
+                    return true;
+                }
+                
                 Log.LogMessage(MessageImportance.Normal, "Zakira.Imprint.Sdk: Resolved target agents: {0}", string.Join(", ", agents));
 
                 // Parse content items into per-package groups with relative paths

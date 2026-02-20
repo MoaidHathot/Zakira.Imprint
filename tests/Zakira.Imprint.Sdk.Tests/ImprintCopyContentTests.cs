@@ -292,6 +292,43 @@ public class ImprintCopyContentTests : IDisposable
     }
 
     [Fact]
+    public void EmptyAgentList_ReturnsTrue_NoFilesCreated()
+    {
+        // Arrange - content exists but no agents resolved (empty TargetAgents + no auto-detect + no defaults)
+        var src = CreateSourceFile("skill.md", "# Skill content");
+        var mockEngine = new MockBuildEngine();
+        var task = new ImprintCopyContent
+        {
+            BuildEngine = mockEngine,
+            ProjectDirectory = _destDir,
+            TargetAgents = "", // Empty = no explicit targets
+            AutoDetectAgents = false, // No auto-detect
+            DefaultAgents = "", // No defaults
+            ContentItems = new ITaskItem[]
+            {
+                CreateContentItem(src, "Zakira.Sample", Path.Combine(_destDir, ".github", "skills"), _sourceDir)
+            }
+        };
+
+        // Act
+        var result = task.Execute();
+
+        // Assert - should succeed but create no files
+        Assert.True(result);
+        
+        // No agent-specific directories should be created
+        Assert.False(Directory.Exists(Path.Combine(_destDir, ".github", "skills")));
+        Assert.False(Directory.Exists(Path.Combine(_destDir, ".claude", "skills")));
+        Assert.False(Directory.Exists(Path.Combine(_destDir, ".cursor", "rules")));
+        
+        // No manifest should be created
+        Assert.False(Directory.Exists(Path.Combine(_destDir, ".imprint")));
+        
+        // Should log info message
+        Assert.Contains(mockEngine.Messages, m => m.Contains("No target agents"));
+    }
+
+    [Fact]
     public void OverwritesExistingFile()
     {
         // Arrange - create an existing destination file where the agent will copy to

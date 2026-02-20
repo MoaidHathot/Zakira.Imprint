@@ -40,6 +40,17 @@
     <ImprintDefaultPrefix Condition="'$(ImprintDefaultPrefix)' == ''"></ImprintDefaultPrefix>
     <ImprintEnabledByDefault Condition="'$(ImprintEnabledByDefault)' == ''">true</ImprintEnabledByDefault>
     <_ImprintGeneratedTargetsDir>$(IntermediateOutputPath)Imprint\</_ImprintGeneratedTargetsDir>
+    
+    <!-- 
+      Determine auto-detection mode based on ImprintTargetAgents value:
+      - "_auto_" (sentinel from .props): enable auto-detection
+      - Any other value (including empty): disable auto-detection, use the explicit value
+    -->
+    <ImprintAutoDetectAgents Condition="'$(ImprintAutoDetectAgents)' == '' AND '$(ImprintTargetAgents)' == '_auto_'">true</ImprintAutoDetectAgents>
+    <ImprintAutoDetectAgents Condition="'$(ImprintAutoDetectAgents)' == ''">false</ImprintAutoDetectAgents>
+    
+    <!-- Clear the sentinel value so tasks receive empty string for auto-detect mode -->
+    <ImprintTargetAgents Condition="'$(ImprintTargetAgents)' == '_auto_'"></ImprintTargetAgents>
   </PropertyGroup>
 
   <!-- Register compiled task assemblies -->

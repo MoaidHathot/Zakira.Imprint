@@ -157,19 +157,28 @@ namespace Zakira.Imprint.Sdk
             sb.AppendLine();
 
             // Generate ImprintContent items for skills
+            // Group items by source base to emit glob patterns instead of individual files
             if (skillItems.Count > 0)
             {
                 sb.AppendLine("  <!-- Skill files to copy (handled by Zakira.Imprint.Sdk's ImprintCopyContent task) -->");
                 sb.AppendLine("  <ItemGroup>");
 
-                foreach (var item in skillItems)
-                {
-                    var includePath = NormalizeIncludePath(item.ItemSpec);
-                    var sourceBase = GetSourceBase(item.ItemSpec);
-                    var suggestedPrefix = item.GetMetadata("SuggestedPrefix");
-                    var destinationBase = item.GetMetadata("DestinationBase");
+                // Group items by their source base (computed from RecursiveDir or first directory)
+                var groupedItems = GroupItemsBySourceBase(skillItems);
 
-                    sb.AppendLine($"    <ImprintContent Include=\"$({rootProperty}){includePath}\">");
+                foreach (var group in groupedItems)
+                {
+                    var sourceBase = group.Key;
+                    var firstItem = group.Value.First();
+                    var suggestedPrefix = firstItem.GetMetadata("SuggestedPrefix");
+                    var destinationBase = firstItem.GetMetadata("DestinationBase");
+                    
+                    // Use glob pattern for the include
+                    var includePattern = string.IsNullOrEmpty(sourceBase) 
+                        ? "**\\*" 
+                        : $"{sourceBase}**\\*";
+
+                    sb.AppendLine($"    <ImprintContent Include=\"$({rootProperty}){includePattern}\">");
                     
                     // DestinationBase - use provided or default to $(ImprintSkillsPath)
                     if (!string.IsNullOrEmpty(destinationBase))
@@ -203,16 +212,24 @@ namespace Zakira.Imprint.Sdk
             }
 
             // Generate ImprintMcpFragment items
+            // Use glob patterns instead of exact paths to ensure MSBuild evaluates them at build time
             if (mcpItems.Count > 0)
             {
                 sb.AppendLine("  <!-- MCP server fragments (handled by Zakira.Imprint.Sdk's ImprintMergeMcpServers task) -->");
                 sb.AppendLine("  <ItemGroup>");
 
-                foreach (var item in mcpItems)
-                {
-                    var includePath = NormalizeIncludePath(item.ItemSpec);
+                // Group MCP items by their directory to generate glob patterns
+                var mcpGroups = GroupMcpItemsByDirectory(mcpItems);
 
-                    sb.AppendLine($"    <ImprintMcpFragment Include=\"$({rootProperty}){includePath}\">");
+                foreach (var group in mcpGroups)
+                {
+                    var directory = group.Key;
+                    // Use glob pattern: directory\**\*.mcp.json (or just **\*.mcp.json if no directory)
+                    var includePattern = string.IsNullOrEmpty(directory)
+                        ? "**\\*.mcp.json"
+                        : $"{directory}**\\*.mcp.json";
+
+                    sb.AppendLine($"    <ImprintMcpFragment Include=\"$({rootProperty}){includePattern}\">");
                     sb.AppendLine($"      <PackageId>{PackageId}</PackageId>");
 
                     // Add EnabledByDefault if not true
@@ -234,6 +251,66 @@ namespace Zakira.Imprint.Sdk
         }
 
         /// <summary>
+        /// Groups items by their source base directory.
+        /// Uses %(RecursiveDir) metadata if available to determine the source base,
+        /// otherwise falls back to extracting the first directory segment.
+        /// </summary>
+        private Dictionary<string, List<ITaskItem>> GroupItemsBySourceBase(List<ITaskItem> items)
+        {
+            var groups = new Dictionary<string, List<ITaskItem>>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var item in items)
+            {
+                var sourceBase = ComputeSourceBase(item);
+
+                if (!groups.ContainsKey(sourceBase))
+                {
+                    groups[sourceBase] = new List<ITaskItem>();
+                }
+                groups[sourceBase].Add(item);
+            }
+
+            return groups;
+        }
+
+        /// <summary>
+        /// Computes the source base for an item.
+        /// If the item has %(RecursiveDir) metadata (from a ** glob), uses that to determine the base.
+        /// Otherwise, extracts the first directory segment as the base.
+        /// </summary>
+        private string ComputeSourceBase(ITaskItem item)
+        {
+            var itemSpec = NormalizeIncludePath(item.ItemSpec);
+            var recursiveDir = item.GetMetadata("RecursiveDir");
+
+            if (!string.IsNullOrEmpty(recursiveDir))
+            {
+                // Item came from a ** glob pattern
+                // RecursiveDir contains the portion matched by **
+                // SourceBase = itemSpec with RecursiveDir portion removed, up to the first directory
+                var normalizedRecursiveDir = NormalizeIncludePath(recursiveDir);
+                
+                // Find where RecursiveDir starts in the item path
+                var recursiveDirIndex = itemSpec.IndexOf(normalizedRecursiveDir, StringComparison.OrdinalIgnoreCase);
+                if (recursiveDirIndex > 0)
+                {
+                    // SourceBase is everything before RecursiveDir
+                    return itemSpec.Substring(0, recursiveDirIndex);
+                }
+            }
+
+            // Fallback: extract the first directory segment as the source base
+            // For "skills/test-skill/instructions.md", this returns "skills/"
+            var firstSep = itemSpec.IndexOfAny(new[] { '\\', '/' });
+            if (firstSep >= 0)
+            {
+                return itemSpec.Substring(0, firstSep + 1);
+            }
+
+            return string.Empty;
+        }
+
+        /// <summary>
         /// Normalizes an include path by converting backslashes to forward slashes
         /// and removing leading slashes.
         /// </summary>
@@ -252,38 +329,31 @@ namespace Zakira.Imprint.Sdk
         }
 
         /// <summary>
-        /// Extracts the source base directory from an include path.
-        /// For "skills\**\*" returns "skills\"
-        /// For "mcp\*.mcp.json" returns "mcp\"
+        /// Groups MCP items by their directory path.
+        /// For "mcp/mcp-skill.mcp.json", returns "mcp\".
+        /// For "servers.mcp.json", returns "".
         /// </summary>
-        private string GetSourceBase(string includePath)
+        private Dictionary<string, List<ITaskItem>> GroupMcpItemsByDirectory(List<ITaskItem> items)
         {
-            var normalized = NormalizeIncludePath(includePath);
+            var groups = new Dictionary<string, List<ITaskItem>>(StringComparer.OrdinalIgnoreCase);
 
-            // Find the first wildcard
-            var wildcardIndex = normalized.IndexOfAny(new[] { '*', '?' });
-
-            if (wildcardIndex < 0)
+            foreach (var item in items)
             {
-                // No wildcard - use the directory of the file
-                var lastSep = normalized.LastIndexOfAny(new[] { '\\', '/' });
-                if (lastSep >= 0)
+                var itemSpec = NormalizeIncludePath(item.ItemSpec);
+                
+                // Extract directory portion (everything before the last path separator)
+                var lastSep = itemSpec.LastIndexOfAny(new[] { '\\', '/' });
+                var directory = lastSep >= 0 ? itemSpec.Substring(0, lastSep + 1) : string.Empty;
+
+                if (!groups.ContainsKey(directory))
                 {
-                    return normalized.Substring(0, lastSep + 1);
+                    groups[directory] = new List<ITaskItem>();
                 }
-                return string.Empty;
+                groups[directory].Add(item);
             }
 
-            // Find the last separator before the wildcard
-            var beforeWildcard = normalized.Substring(0, wildcardIndex);
-            var lastSepBeforeWildcard = beforeWildcard.LastIndexOfAny(new[] { '\\', '/' });
-
-            if (lastSepBeforeWildcard >= 0)
-            {
-                return normalized.Substring(0, lastSepBeforeWildcard + 1);
-            }
-
-            return string.Empty;
+            return groups;
         }
+
     }
 }

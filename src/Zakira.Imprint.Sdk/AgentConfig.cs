@@ -52,13 +52,21 @@ namespace Zakira.Imprint.Sdk
                     McpSubPath: "",
                     McpFileName: "opencode.json",
                     McpRootKey: "mcp"),
+                ["windsurf"] = new AgentDefinition(
+                    Name: "windsurf",
+                    DetectionDir: ".windsurf",
+                    SkillsSubPath: ".windsurf" + Path.DirectorySeparatorChar + "rules",
+                    McpSubPath: ".windsurf",
+                    McpFileName: "mcp.json",
+                    McpRootKey: "mcpServers"),
             };
 
         /// <summary>
         /// Resolves the final list of target agents using the priority hierarchy:
         /// 1. Explicit consumer setting (targetAgents parameter)
         /// 2. Auto-detection (if autoDetect is true)
-        /// 3. Default agents fallback
+        /// 3. Default agents fallback (if set)
+        /// 4. Empty list (no agents = no files created)
         /// </summary>
         public static List<string> ResolveAgents(
             string projectDirectory,
@@ -82,14 +90,14 @@ namespace Zakira.Imprint.Sdk
                 }
             }
 
-            // 3. Fallback to defaults
+            // 3. Fallback to defaults (if set)
             if (!string.IsNullOrWhiteSpace(defaultAgents))
             {
                 return ParseAgentList(defaultAgents);
             }
 
-            // Ultimate fallback
-            return new List<string> { "copilot" };
+            // 4. No agents found, no defaults set = empty list (no files created)
+            return new List<string>();
         }
 
         /// <summary>
@@ -131,8 +139,8 @@ namespace Zakira.Imprint.Sdk
             {
                 return Path.Combine(projectDirectory, def.SkillsSubPath);
             }
-            // Unknown agent: use .{agent}/skills/ convention
-            return Path.Combine(projectDirectory, $".{agentName}", "skills");
+            // Unknown agent: use windsurf convention (.{agent}/rules/)
+            return Path.Combine(projectDirectory, $".{agentName}", "rules");
         }
 
         /// <summary>

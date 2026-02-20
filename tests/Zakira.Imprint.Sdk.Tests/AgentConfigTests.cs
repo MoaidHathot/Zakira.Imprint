@@ -198,10 +198,19 @@ public class AgentConfigTests : IDisposable
     }
 
     [Fact]
-    public void ResolveAgents_UltimateFallback_WhenEverythingEmpty()
+    public void ResolveAgents_ReturnsEmpty_WhenNoAgentsFoundAndNoDefaults()
     {
+        // New behavior: return empty list instead of "copilot" fallback
+        var result = AgentConfig.ResolveAgents(_testDir, "", autoDetect: true, defaultAgents: "");
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public void ResolveAgents_ReturnsEmpty_WhenAutoDetectDisabledAndNoDefaults()
+    {
+        // New behavior: return empty list instead of "copilot" fallback
         var result = AgentConfig.ResolveAgents(_testDir, "", autoDetect: false, defaultAgents: "");
-        Assert.Equal(new[] { "copilot" }, result);
+        Assert.Empty(result);
     }
 
     [Fact]
@@ -251,8 +260,8 @@ public class AgentConfigTests : IDisposable
     [Fact]
     public void GetSkillsPath_UnknownAgent_UsesConvention()
     {
-        var path = AgentConfig.GetSkillsPath(_testDir, "windsurf");
-        Assert.Equal(Path.Combine(_testDir, ".windsurf", "skills"), path);
+        var path = AgentConfig.GetSkillsPath(_testDir, "futureagent");
+        Assert.Equal(Path.Combine(_testDir, ".futureagent", "rules"), path);
     }
 
     // ── GetMcpPath ──────────────────────────────────────────────────
@@ -346,14 +355,15 @@ public class AgentConfigTests : IDisposable
     // ── KnownAgents ─────────────────────────────────────────────────
 
     [Fact]
-    public void KnownAgents_ContainsFiveAgents()
+    public void KnownAgents_ContainsSixAgents()
     {
-        Assert.Equal(5, AgentConfig.KnownAgents.Count);
+        Assert.Equal(6, AgentConfig.KnownAgents.Count);
         Assert.True(AgentConfig.KnownAgents.ContainsKey("copilot"));
         Assert.True(AgentConfig.KnownAgents.ContainsKey("claude"));
         Assert.True(AgentConfig.KnownAgents.ContainsKey("cursor"));
         Assert.True(AgentConfig.KnownAgents.ContainsKey("roo"));
         Assert.True(AgentConfig.KnownAgents.ContainsKey("opencode"));
+        Assert.True(AgentConfig.KnownAgents.ContainsKey("windsurf"));
     }
 
     [Fact]
@@ -364,6 +374,7 @@ public class AgentConfigTests : IDisposable
         Assert.True(AgentConfig.KnownAgents.ContainsKey("cUrSoR"));
         Assert.True(AgentConfig.KnownAgents.ContainsKey("ROO"));
         Assert.True(AgentConfig.KnownAgents.ContainsKey("OpenCode"));
+        Assert.True(AgentConfig.KnownAgents.ContainsKey("WindSurf"));
     }
 
     [Fact]
