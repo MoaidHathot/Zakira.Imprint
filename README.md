@@ -14,7 +14,7 @@ Imprint is a pattern for distributing AI Skills (those `SKILLS.md` files for Git
 
 1. **On `dotnet build`**: Skills are automatically copied to each AI agent's native directory
 2. **On `dotnet clean`**: Skills are removed (including empty parent directories)
-3. **Multi-agent support**: Targets Copilot, Claude, Cursor, and Roo Code simultaneously — each gets files in its native location (if exists)
+3. **Multi-agent support**: Targets Copilot, Claude, Cursor, Roo Code, OpenCode, and Windsurf simultaneously — each gets files in its native location (if exists)
 4. **All file types supported**: Not just `.md` — scripts, configs, and any other files in the `skills/` folder are included
 5. **MCP Server Injection**: Packages can inject [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) server configurations into each agent's `mcp.json`
 6. **Code + Skills**: Packages can ship both a compiled DLL library **and** AI skills — consumers get runtime APIs and AI guidance from a single NuGet install
@@ -59,7 +59,7 @@ dotnet build
 # Skills are now at .github/skills/, .claude/skills/, .cursor/rules/, .roo/rules/ etc.
 ```
 
-Imprint auto-detects which AI agents you use by scanning for their configuration directories (`.github/`, `.claude/`, `.cursor/`, `.roo/`). Skills are copied to each detected agent's native location.
+Imprint auto-detects which AI agents you use by scanning for their configuration directories (`.github/`, `.claude/`, `.cursor/`, `.roo/`, `.opencode/`, `.windsurf/`). Skills are copied to each detected agent's native location.
 
 A shared `.gitignore` is automatically generated at `.imprint/.gitignore`, so no manual `.gitignore` configuration is needed.
 
@@ -102,8 +102,9 @@ Imprint includes multi-agent support. Instead of targeting only GitHub Copilot, 
 | `cursor` | `.cursor/` exists | `.cursor/rules/` | `.cursor/mcp.json` | `mcpServers` |
 | `roo` | `.roo/` exists | `.roo/rules/` | `.roo/mcp.json` | `mcpServers` |
 | `opencode` | `.opencode/` exists | `.opencode/skills/` | `opencode.json` (project root) | `mcp` |
+| `windsurf` | `.windsurf/` exists | `.windsurf/rules/` | `.windsurf/mcp.json` | `mcpServers` |
 
-Unknown agent names fall back to `.{name}/skills/` for skills and `.{name}/mcp.json` for MCP.
+Unknown agent names fall back to `.{name}/rules/` for skills and `.{name}/mcp.json` for MCP.
 
 ### Agent Resolution
 
@@ -117,7 +118,7 @@ Imprint determines which agents to target using a priority hierarchy:
    ```
 
 2. **Auto-detection** (default, ON) — Scans for agent directories at build time. If `.github/` and `.claude/` exist, both `copilot` and `claude` are targeted.
-   Supported detection directories: `.github/` (copilot), `.claude/` (claude), `.cursor/` (cursor), `.roo/` (roo), `.opencode/` (opencode).
+   Supported detection directories: `.github/` (copilot), `.claude/` (claude), `.cursor/` (cursor), `.roo/` (roo), `.opencode/` (opencode), `.windsurf/` (windsurf).
 
 3. **Default fallback** — If no directories are detected:
    ```xml
@@ -132,7 +133,38 @@ Imprint determines which agents to target using a priority hierarchy:
 |----------|---------|---------|
 | `ImprintTargetAgents` | *(empty)* | Explicit agent list (semicolon-separated). Overrides auto-detection. |
 | `ImprintAutoDetectAgents` | `true` | Scan for agent directories at build time |
-| `ImprintDefaultAgents` | `copilot` | Fallback when no agents are detected |
+| `ImprintDefaultAgents` | *(empty)* | Fallback when no agents are detected |
+| `ImprintRootDirectory` | *(auto-detected)* | Repository root where skills are placed. See [Root Directory](#root-directory). |
+
+### Root Directory
+
+By default, Imprint auto-detects the **repository root** by walking up from the project directory. Markers are checked in priority order:
+
+1. **VCS directories** - `.git/`, `.svn/`, `.hg/` (most authoritative)
+2. **IDE directories** - `.vs/` (Visual Studio), `.idea/` (JetBrains)
+3. **Solution files** - `*.sln`, `*.slnx` (fallback)
+
+This ensures that in multi-project solutions, skills are placed at the repository root (where `.git/` lives) rather than inside individual project directories:
+
+```
+/repo-root/              <-- Skills placed here (correct)
+├── .git/
+├── .github/skills/      <-- Not inside src/MyProject/.github/
+├── src/
+│   └── MyProject/
+│       └── MyProject.csproj
+└── MyApp.sln
+```
+
+If auto-detection doesn't work for your setup, you can explicitly set the root directory:
+
+```xml
+<PropertyGroup>
+  <ImprintRootDirectory>$(MSBuildThisFileDirectory)..\</ImprintRootDirectory>
+</PropertyGroup>
+```
+
+If no repository root is found and no explicit override is set, Imprint falls back to the project directory.
 
 ### Example Output
 
@@ -190,8 +222,8 @@ All Imprint skill packages depend on **Zakira.Imprint.Sdk**, which provides the 
 
 2. **Agent Resolution**: Before any file operations, `AgentConfig.ResolveAgents()` determines which agents to target:
    - If `ImprintTargetAgents` is set, use that explicit list
-   - Else if `ImprintAutoDetectAgents` is true, scan for `.github/`, `.claude/`, `.cursor/`, `.roo/`, `.opencode/` directories
-   - Else fall back to `ImprintDefaultAgents` (default: `copilot`)
+   - Else if `ImprintAutoDetectAgents` is true, scan for `.github/`, `.claude/`, `.cursor/`, `.roo/`, `.opencode/`, `.windsurf/` directories
+   - Else fall back to `ImprintDefaultAgents`
 
 3. **Content Copy** (`Imprint_CopyContent`): For each resolved agent, copies skill files to the agent's native skills directory. Writes a unified manifest v2 at `.imprint/manifest.json` tracking all files per-agent per-package.
 
@@ -293,6 +325,8 @@ Different AI agents use different JSON schemas for their MCP configuration files
 | Claude | `mcpServers` | `{"mcpServers": {"my-server": {...}}}` |
 | Cursor | `mcpServers` | `{"mcpServers": {"my-server": {...}}}` |
 | Roo Code | `mcpServers` | `{"mcpServers": {"my-server": {...}}}` |
+| OpenCode | `mcp` | `{"mcp": {"my-server": {...}}}` |
+| Windsurf | `mcpServers` | `{"mcpServers": {"my-server": {...}}}` |
 
 **Package authors always write fragments using `"servers"`** as the root key. The SDK reads these fragments and transforms them to each agent's expected schema when writing to their respective `mcp.json` files. The inner server definition (`command`, `args`, `type`, `env`) is identical across all agents.
 
@@ -428,13 +462,15 @@ dotnet build
 - [x] ~~Auto-detection of AI agents~~
 - [x] ~~Unified manifest v2 with per-agent tracking~~
 - [x] ~~Auto-generated `.targets` files — no manual MSBuild authoring required~~
+- [x] ~~Repository root auto-detection for multi-project solutions~~
 - [ ] Server key conflict detection/warnings when multiple packages define the same key
 - [ ] Global tool for managing skills across solutions
 - [ ] Skill validation during pack
 - [ ] Conflict detection between skill packages
 - [ ] CI/CD pipeline for building and publishing packages
 - [ ] Prompts support (distribute `.prompt` files to agent-specific directories)
-- [ ] Additional agent support (Windsurf, Cody, etc.)
+- [x] ~~Windsurf agent support~~
+- [ ] Additional agent support (Cody, etc.)
 
 ## License
 

@@ -19,8 +19,17 @@ namespace Zakira.Imprint.Sdk
         [Required]
         public ITaskItem[] McpFragmentFiles { get; set; } = Array.Empty<ITaskItem>();
 
+        /// <summary>
+        /// The project directory (MSBuildProjectDirectory). Used for fallback if no repo root found.
+        /// </summary>
         [Required]
         public string ProjectDirectory { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Explicit root directory override for agent directories and manifest storage.
+        /// If empty, auto-detects repository root by walking up from ProjectDirectory.
+        /// </summary>
+        public string RootDirectory { get; set; } = string.Empty;
 
         /// <summary>
         /// Explicit target agents (semicolon-separated: copilot;claude;cursor).
@@ -41,6 +50,9 @@ namespace Zakira.Imprint.Sdk
         {
             try
             {
+                // Resolve the root directory (repo root or explicit override)
+                var resolvedRoot = AgentConfig.ResolveRootDirectory(ProjectDirectory, RootDirectory);
+                
                 // --- Collect servers from all fragments ---
                 var newManagedServers = new Dictionary<string, JsonNode>();
 
@@ -81,8 +93,8 @@ namespace Zakira.Imprint.Sdk
                     return true;
                 }
 
-                // Resolve target agents
-                var agents = AgentConfig.ResolveAgents(ProjectDirectory, TargetAgents, AutoDetectAgents, DefaultAgents);
+                // Resolve target agents using the resolved root directory
+                var agents = AgentConfig.ResolveAgents(resolvedRoot, TargetAgents, AutoDetectAgents, DefaultAgents);
                 
                 if (agents.Count == 0)
                 {
@@ -92,7 +104,8 @@ namespace Zakira.Imprint.Sdk
                     return true;
                 }
                 
-                Log.LogMessage(MessageImportance.Normal, "Zakira.Imprint.Sdk: Merging MCP servers for agents: {0}", string.Join(", ", agents));
+                Log.LogMessage(MessageImportance.Normal, "Zakira.Imprint.Sdk: Merging MCP servers for agents: {0} (root: {1})", 
+                    string.Join(", ", agents), resolvedRoot);
 
                 // Track MCP data for unified manifest
                 var mcpManifestData = new Dictionary<string, McpAgentManifest>();
@@ -100,8 +113,8 @@ namespace Zakira.Imprint.Sdk
                 // Merge to each agent's MCP file
                 foreach (var agent in agents)
                 {
-                    var mcpFilePath = AgentConfig.GetMcpPath(ProjectDirectory, agent);
-                    var mcpDir = AgentConfig.GetMcpDirectory(ProjectDirectory, agent);
+                    var mcpFilePath = AgentConfig.GetMcpPath(resolvedRoot, agent);
+                    var mcpDir = AgentConfig.GetMcpDirectory(resolvedRoot, agent);
                     var legacyManifestPath = Path.Combine(mcpDir, ".imprint-mcp-manifest");
 
                     // Read old managed keys from legacy manifest for this agent
@@ -117,7 +130,7 @@ namespace Zakira.Imprint.Sdk
                     EnsureGitignore(Path.Combine(mcpDir, ".gitignore"));
 
                     // Track for unified manifest
-                    var relMcpPath = Path.GetRelativePath(ProjectDirectory, mcpFilePath);
+                    var relMcpPath = Path.GetRelativePath(resolvedRoot, mcpFilePath);
                     mcpManifestData[agent] = new McpAgentManifest
                     {
                         Path = relMcpPath,
@@ -126,7 +139,7 @@ namespace Zakira.Imprint.Sdk
                 }
 
                 // Update unified manifest with MCP section
-                UpdateUnifiedManifestMcp(mcpManifestData);
+                UpdateUnifiedManifestMcp(mcpManifestData, resolvedRoot);
 
                 return true;
             }
@@ -315,9 +328,9 @@ namespace Zakira.Imprint.Sdk
             File.WriteAllText(manifestPath, content);
         }
 
-        private void UpdateUnifiedManifestMcp(Dictionary<string, McpAgentManifest> mcpData)
+        private void UpdateUnifiedManifestMcp(Dictionary<string, McpAgentManifest> mcpData, string rootDirectory)
         {
-            var imprintDir = Path.Combine(ProjectDirectory, ".imprint");
+            var imprintDir = Path.Combine(rootDirectory, ".imprint");
             var manifestPath = Path.Combine(imprintDir, "manifest.json");
 
             JsonObject manifestDoc;

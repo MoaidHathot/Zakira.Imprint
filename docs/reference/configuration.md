@@ -11,6 +11,53 @@ Complete reference for all MSBuild properties used to configure Zakira.Imprint S
 
 ---
 
+## Root Directory Configuration
+
+### ImprintRootDirectory
+
+Explicitly specifies the root directory where agent directories (`.github/`, `.claude/`, etc.) and the `.imprint/` manifest folder are created.
+
+| | |
+|---|---|
+| **Type** | String (path) |
+| **Default** | *(auto-detected)* |
+| **Scope** | Consumer projects |
+
+By default, Imprint auto-detects the repository root by walking up from the project directory. Markers are checked in priority order:
+
+1. **VCS directories** - `.git`, `.svn`, `.hg` (most authoritative)
+2. **IDE directories** - `.vs` (Visual Studio), `.idea` (JetBrains)
+3. **Solution files** - `*.sln`, `*.slnx` (fallback)
+
+If no repository root is found, falls back to the project directory.
+
+**Use cases:**
+- Multi-project solutions where skills should be placed at the solution root
+- Non-standard repository layouts
+- When auto-detection doesn't find the desired root
+
+```xml
+<PropertyGroup>
+  <!-- Use solution directory as the root -->
+  <ImprintRootDirectory>$(SolutionDir)</ImprintRootDirectory>
+</PropertyGroup>
+```
+
+**Example scenario:**
+```
+/repo-root/
+├── .git/
+├── MyApp.sln
+├── src/
+│   └── MyApp/
+│       └── MyApp.csproj  ← Project with Imprint package
+├── .github/              ← Skills placed here (at repo root)
+│   └── skills/
+└── .imprint/             ← Manifest stored here (at repo root)
+```
+
+---
+
 ## Agent Detection Properties
 
 These properties control which AI agents receive skill files.
@@ -30,6 +77,8 @@ When enabled, Imprint scans the project directory for existing agent folders:
 - `.claude/` → Claude detected  
 - `.cursor/` → Cursor detected
 - `.roo/` → Roo Code detected
+- `.opencode/` → OpenCode detected
+- `.windsurf/` → Windsurf detected
 
 ```xml
 <PropertyGroup>
@@ -48,7 +97,7 @@ Explicitly specifies which agents to target. When set, disables auto-detection.
 | **Type** | String (semicolon-separated) |
 | **Default** | *(empty)* |
 | **Scope** | Consumer projects |
-| **Values** | `copilot`, `claude`, `cursor`, `roo` |
+| **Values** | `copilot`, `claude`, `cursor`, `roo`, `opencode`, `windsurf` |
 
 ```xml
 <PropertyGroup>
@@ -66,13 +115,13 @@ Fallback agents when auto-detection finds no existing agent directories.
 | | |
 |---|---|
 | **Type** | String (semicolon-separated) |
-| **Default** | `copilot` |
+| **Default** | *(empty)* |
 | **Scope** | Consumer projects |
 
 ```xml
 <PropertyGroup>
   <!-- Default to all agents if none detected -->
-  <ImprintDefaultAgents>copilot;claude;cursor;roo</ImprintDefaultAgents>
+  <ImprintDefaultAgents>copilot;claude;cursor;roo;opencode;windsurf</ImprintDefaultAgents>
 </PropertyGroup>
 ```
 

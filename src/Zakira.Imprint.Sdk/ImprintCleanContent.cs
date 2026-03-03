@@ -19,10 +19,16 @@ namespace Zakira.Imprint.Sdk
         private const string GitignoreHeader = "# Managed by Zakira.Imprint";
 
         /// <summary>
-        /// The project directory (contains .imprint/ manifest storage).
+        /// The project directory (MSBuildProjectDirectory). Used for fallback if no repo root found.
         /// </summary>
         [Required]
         public string ProjectDirectory { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Explicit root directory override for agent directories and manifest storage.
+        /// If empty, auto-detects repository root by walking up from ProjectDirectory.
+        /// </summary>
+        public string RootDirectory { get; set; } = string.Empty;
 
         /// <summary>
         /// Explicit target agents (not used for clean — clean relies on manifest data).
@@ -44,7 +50,10 @@ namespace Zakira.Imprint.Sdk
         {
             try
             {
-                var imprintDir = Path.Combine(ProjectDirectory, ".imprint");
+                // Resolve the root directory (repo root or explicit override)
+                var resolvedRoot = AgentConfig.ResolveRootDirectory(ProjectDirectory, RootDirectory);
+                
+                var imprintDir = Path.Combine(resolvedRoot, ".imprint");
 
                 if (!Directory.Exists(imprintDir))
                 {

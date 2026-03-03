@@ -15,8 +15,17 @@ namespace Zakira.Imprint.Sdk
     /// </summary>
     public class ImprintCleanMcpServers : Task
     {
+        /// <summary>
+        /// The project directory (MSBuildProjectDirectory). Used for fallback if no repo root found.
+        /// </summary>
         [Required]
         public string ProjectDirectory { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Explicit root directory override for agent directories and manifest storage.
+        /// If empty, auto-detects repository root by walking up from ProjectDirectory.
+        /// </summary>
+        public string RootDirectory { get; set; } = string.Empty;
 
         /// <summary>
         /// Explicit target agents. Accepted for compatibility with targets file.
@@ -34,10 +43,16 @@ namespace Zakira.Imprint.Sdk
         /// </summary>
         public string DefaultAgents { get; set; } = "";
 
+        // Store resolved root for use in instance methods
+        private string _resolvedRoot = string.Empty;
+
         public override bool Execute()
         {
             try
             {
+                // Resolve the root directory (repo root or explicit override)
+                _resolvedRoot = AgentConfig.ResolveRootDirectory(ProjectDirectory, RootDirectory);
+                
                 var cleanedAny = false;
 
                 // 1. Try unified manifest first
@@ -66,7 +81,7 @@ namespace Zakira.Imprint.Sdk
         /// </summary>
         private bool CleanFromUnifiedManifest()
         {
-            var imprintDir = Path.Combine(ProjectDirectory, ".imprint");
+            var imprintDir = Path.Combine(_resolvedRoot, ".imprint");
             var manifestPath = Path.Combine(imprintDir, "manifest.json");
 
             if (!File.Exists(manifestPath)) return false;
@@ -163,9 +178,9 @@ namespace Zakira.Imprint.Sdk
             // Map directory to agent name for proper root key lookup
             var dirsToCheck = new Dictionary<string, string>
             {
-                { Path.Combine(ProjectDirectory, ".vscode"), "copilot" },
-                { Path.Combine(ProjectDirectory, ".claude"), "claude" },
-                { Path.Combine(ProjectDirectory, ".cursor"), "cursor" },
+                { Path.Combine(_resolvedRoot, ".vscode"), "copilot" },
+                { Path.Combine(_resolvedRoot, ".claude"), "claude" },
+                { Path.Combine(_resolvedRoot, ".cursor"), "cursor" },
             };
 
             foreach (var kvp in dirsToCheck)

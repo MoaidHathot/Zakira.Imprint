@@ -8,10 +8,25 @@
 
   <PropertyGroup>
     <!-- 
+      ImprintRootDirectory: The root directory where agent directories will be created.
+      
+      By default, Imprint auto-detects the repository root by walking up from the project
+      directory looking for:
+        - .git, .svn, .hg directories (VCS markers)
+        - *.sln or *.slnx files (solution files)
+      
+      If no repository root is found, falls back to the project directory.
+      
+      Set this explicitly to override auto-detection, e.g.:
+        <ImprintRootDirectory>$(SolutionDir)</ImprintRootDirectory>
+    -->
+    <ImprintRootDirectory Condition="'$(ImprintRootDirectory)' == ''"></ImprintRootDirectory>
+
+    <!-- 
       Multi-agent targeting configuration:
       
       ImprintTargetAgents: Explicit list of agents (semicolon-separated: copilot;claude;cursor)
-        - Not set (or set to _auto_): auto-detect agents from project directories
+        - Not set (or set to _auto_): auto-detect agents from repository root directories
         - Set to empty string: explicit opt-out, no content will be created
         - Set to agent list: use exactly those agents
       

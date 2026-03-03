@@ -63,10 +63,10 @@ Copies skill files from NuGet packages to agent-specific directories.
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
 | `ContentItems` | `ITaskItem[]` | Yes | - | `<ImprintContent>` items to copy |
-| `ProjectDirectory` | `string` | Yes | - | Consumer project directory |
+| `RootDirectory` | `string` | Yes | - | Root directory for agent folders |
 | `TargetAgents` | `string` | No | *(empty)* | Explicit agents (semicolon-separated) |
 | `AutoDetectAgents` | `bool` | No | `true` | Auto-detect agents from directories |
-| `DefaultAgents` | `string` | No | `copilot` | Fallback agents |
+| `DefaultAgents` | `string` | No | *(empty)* | Fallback agents |
 | `PrefixSkills` | `bool` | No | `false` | Add package prefix to folders |
 | `DefaultPrefix` | `string` | No | *(empty)* | Custom prefix (uses PackageId if empty) |
 
@@ -87,7 +87,7 @@ Copies skill files from NuGet packages to agent-specific directories.
 ```xml
 <ImprintCopyContent
     ContentItems="@(ImprintContent)"
-    ProjectDirectory="$(MSBuildProjectDirectory)"
+    RootDirectory="$(ImprintRootDirectory)"
     TargetAgents="$(ImprintTargetAgents)"
     AutoDetectAgents="$(ImprintAutoDetectAgents)"
     DefaultAgents="$(ImprintDefaultAgents)"
@@ -110,7 +110,7 @@ Removes skill files previously copied by `ImprintCopyContent`.
 | `ProjectDirectory` | `string` | Yes | - | Consumer project directory |
 | `TargetAgents` | `string` | No | *(empty)* | Accepted for compatibility |
 | `AutoDetectAgents` | `bool` | No | `true` | Accepted for compatibility |
-| `DefaultAgents` | `string` | No | `copilot` | Accepted for compatibility |
+| `DefaultAgents` | `string` | No | *(empty)* | Accepted for compatibility |
 
 {: .note }
 The clean task uses the manifest to determine which files to remove, so agent parameters are not used for actual cleanup logic.
@@ -141,7 +141,7 @@ Merges MCP server fragment files into agent-specific `mcp.json` files.
 | `ProjectDirectory` | `string` | Yes | - | Consumer project directory |
 | `TargetAgents` | `string` | No | *(empty)* | Explicit agents |
 | `AutoDetectAgents` | `bool` | No | `true` | Auto-detect agents |
-| `DefaultAgents` | `string` | No | `copilot` | Fallback agents |
+| `DefaultAgents` | `string` | No | *(empty)* | Fallback agents |
 
 #### ImprintMcpFragment Item Metadata
 
@@ -194,7 +194,7 @@ Removes managed MCP servers from agent `mcp.json` files.
 | `ProjectDirectory` | `string` | Yes | - | Consumer project directory |
 | `TargetAgents` | `string` | No | *(empty)* | Explicit agents |
 | `AutoDetectAgents` | `bool` | No | `true` | Auto-detect agents |
-| `DefaultAgents` | `string` | No | `copilot` | Fallback agents |
+| `DefaultAgents` | `string` | No | *(empty)* | Fallback agents |
 
 #### Example Usage
 
@@ -333,7 +333,7 @@ The `AgentConfig` class provides static methods for agent resolution.
 
 ```csharp
 public static List<string> ResolveAgents(
-    string projectDirectory,
+    string rootDirectory,
     string targetAgents,
     bool autoDetect,
     string defaultAgents)
@@ -347,10 +347,10 @@ Resolves the final list of target agents using priority:
 #### DetectAgents
 
 ```csharp
-public static List<string> DetectAgents(string projectDirectory)
+public static List<string> DetectAgents(string rootDirectory)
 ```
 
-Scans for agent directories (`.github`, `.claude`, `.cursor`, `.roo`) and returns detected agents.
+Scans for agent directories (`.github`, `.claude`, `.cursor`, `.roo`, `.opencode`, `.windsurf`) and returns detected agents.
 
 #### GetSkillsPath
 
@@ -374,7 +374,7 @@ Returns the absolute MCP config file path for an agent.
 public static string GetMcpRootKey(string agentName)
 ```
 
-Returns the JSON root key for MCP servers (`"servers"` for VS Code, `"mcpServers"` for Claude/Cursor/Roo Code).
+Returns the JSON root key for MCP servers (`"servers"` for VS Code, `"mcpServers"` for Claude/Cursor/Roo Code/Windsurf, `"mcp"` for OpenCode).
 
 ### KnownAgents Dictionary
 
@@ -388,11 +388,11 @@ Contains definitions for known agents with their directory conventions.
 
 ```csharp
 public record AgentDefinition(
-    string Name,           // "copilot", "claude", "cursor", "roo"
-    string DetectionDir,   // ".github", ".claude", ".cursor", ".roo"
-    string SkillsSubPath,  // ".github/skills", ".claude/skills", ".cursor/rules", ".roo/rules"
-    string McpSubPath,     // ".vscode", ".claude", ".cursor", ".roo"
-    string McpFileName,    // "mcp.json"
-    string McpRootKey      // "servers" or "mcpServers"
+    string Name,           // "copilot", "claude", "cursor", "roo", "opencode", "windsurf"
+    string DetectionDir,   // ".github", ".claude", ".cursor", ".roo", ".opencode", ".windsurf"
+    string SkillsSubPath,  // ".github/skills", ".claude/skills", ".cursor/rules", ".roo/rules", ".opencode/skills", ".windsurf/rules"
+    string McpSubPath,     // ".vscode", ".claude", ".cursor", ".roo", "" (root for opencode), ".windsurf"
+    string McpFileName,    // "mcp.json" or "opencode.json"
+    string McpRootKey      // "servers", "mcpServers", or "mcp"
 );
 ```

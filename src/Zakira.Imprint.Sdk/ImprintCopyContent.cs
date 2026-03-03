@@ -33,10 +33,16 @@ namespace Zakira.Imprint.Sdk
         public ITaskItem[] ContentItems { get; set; } = Array.Empty<ITaskItem>();
 
         /// <summary>
-        /// The project directory (used for .imprint/ manifest storage and agent detection).
+        /// The project directory (MSBuildProjectDirectory). Used for fallback if no repo root found.
         /// </summary>
         [Required]
         public string ProjectDirectory { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Explicit root directory override for agent directories and manifest storage.
+        /// If empty, auto-detects repository root by walking up from ProjectDirectory.
+        /// </summary>
+        public string RootDirectory { get; set; } = string.Empty;
 
         /// <summary>
         /// Explicit target agents (semicolon-separated: copilot;claude;cursor).
@@ -70,10 +76,13 @@ namespace Zakira.Imprint.Sdk
         {
             try
             {
+                // Resolve the root directory (repo root or explicit override)
+                var resolvedRoot = AgentConfig.ResolveRootDirectory(ProjectDirectory, RootDirectory);
+                
                 // Clean up files from packages that were previously installed but are now removed
                 // This must run BEFORE the early return for empty ContentItems, otherwise cleanup
                 // won't happen when all packages are removed from the project
-                var imprintDir = Path.Combine(ProjectDirectory, ".imprint");
+                var imprintDir = Path.Combine(resolvedRoot, ".imprint");
                 
                 if (ContentItems == null || ContentItems.Length == 0)
                 {
@@ -83,8 +92,8 @@ namespace Zakira.Imprint.Sdk
                     return true;
                 }
 
-                // Resolve target agents
-                var agents = AgentConfig.ResolveAgents(ProjectDirectory, TargetAgents, AutoDetectAgents, DefaultAgents);
+                // Resolve target agents using the resolved root directory
+                var agents = AgentConfig.ResolveAgents(resolvedRoot, TargetAgents, AutoDetectAgents, DefaultAgents);
                 
                 if (agents.Count == 0)
                 {
@@ -94,7 +103,8 @@ namespace Zakira.Imprint.Sdk
                     return true;
                 }
                 
-                Log.LogMessage(MessageImportance.Normal, "Zakira.Imprint.Sdk: Resolved target agents: {0}", string.Join(", ", agents));
+                Log.LogMessage(MessageImportance.Normal, "Zakira.Imprint.Sdk: Resolved target agents: {0} (root: {1})", 
+                    string.Join(", ", agents), resolvedRoot);
 
                 // Parse content items into per-package groups with relative paths
                 var packageItems = ParseContentItems();
@@ -104,7 +114,7 @@ namespace Zakira.Imprint.Sdk
                 }
 
                 // Check for destination conflicts before copying
-                var conflictResult = CheckForDestinationConflicts(packageItems, agents);
+                var conflictResult = CheckForDestinationConflicts(packageItems, agents, resolvedRoot);
                 if (!conflictResult)
                 {
                     return false; // Errors already logged
@@ -123,7 +133,7 @@ namespace Zakira.Imprint.Sdk
                 // Copy files to each agent's skills directory
                 foreach (var agent in agents)
                 {
-                    var agentSkillsPath = AgentConfig.GetSkillsPath(ProjectDirectory, agent);
+                    var agentSkillsPath = AgentConfig.GetSkillsPath(resolvedRoot, agent);
 
                     foreach (var kvp in packageItems)
                     {
@@ -182,14 +192,15 @@ namespace Zakira.Imprint.Sdk
         /// </summary>
         private bool CheckForDestinationConflicts(
             Dictionary<string, List<(string SourceFile, string RelativePath)>> packageItems,
-            IEnumerable<string> agents)
+            IEnumerable<string> agents,
+            string rootDirectory)
         {
             var destinationOwners = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             var hasConflicts = false;
 
             foreach (var agent in agents)
             {
-                var agentSkillsPath = AgentConfig.GetSkillsPath(ProjectDirectory, agent);
+                var agentSkillsPath = AgentConfig.GetSkillsPath(rootDirectory, agent);
 
                 foreach (var kvp in packageItems)
                 {

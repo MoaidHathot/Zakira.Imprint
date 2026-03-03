@@ -138,6 +138,8 @@ dotnet nuget locals all --list
 | Claude | `.claude/skills/{package-folder}/SKILL.md` |
 | Cursor | `.cursor/rules/{package-folder}/*.mdc` |
 | Roo Code | `.roo/rules/{package-folder}/*.mdc` |
+| OpenCode | `.opencode/skills/{package-folder}/SKILL.md` |
+| Windsurf | `.windsurf/rules/{package-folder}/*.mdc` |
 
 **Possible causes:**
 
@@ -150,7 +152,7 @@ dotnet nuget locals all --list
    ```
 
 2. **Wrong agent targeted:**
-   - The skill folder varies by agent (`.github/skills/`, `.claude/skills/`, `.cursor/rules/`, `.roo/rules/`)
+   - The skill folder varies by agent (`.github/skills/`, `.claude/skills/`, `.cursor/rules/`, `.roo/rules/`, `.opencode/skills/`, `.windsurf/rules/`)
    - Verify `ImprintTargetAgents` is set correctly
 
 ### Manifest Conflicts
@@ -185,6 +187,8 @@ dotnet restore
 | Claude | `.claude/mcp.json` | `mcpServers` |
 | Cursor | `.cursor/mcp.json` | `mcpServers` |
 | Roo Code | `.roo/mcp.json` | `mcpServers` |
+| OpenCode | `opencode.json` | `mcp` |
+| Windsurf | `.windsurf/mcp.json` | `mcpServers` |
 
 **Possible causes:**
 
@@ -209,10 +213,10 @@ dotnet restore
    ```
 
 2. **Agent not targeted:**
-   ```xml
+```xml
    <!-- Ensure the agent is included -->
    <PropertyGroup>
-     <ImprintTargetAgents>copilot;claude;cursor;roo</ImprintTargetAgents>
+     <ImprintTargetAgents>copilot;claude;cursor;roo;opencode;windsurf</ImprintTargetAgents>
    </PropertyGroup>
    ```
 
@@ -433,6 +437,12 @@ cat .cursor/mcp.json | jq .
 
 # Roo Code MCP config
 cat .roo/mcp.json | jq .
+
+# OpenCode config
+cat opencode.json | jq .
+
+# Windsurf MCP config
+cat .windsurf/mcp.json | jq .
 ```
 
 ---

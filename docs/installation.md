@@ -133,6 +133,8 @@ After installing a skill package and building:
    ls .claude/skills/   # Claude
    ls .cursor/rules/    # Cursor
    ls .roo/rules/       # Roo Code
+   ls .opencode/skills/ # OpenCode
+   ls .windsurf/rules/  # Windsurf
    ```
 
 2. Check the manifest:

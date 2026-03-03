@@ -216,6 +216,7 @@
     <ImprintCopyContent
         ContentItems="@(ImprintContent)"
         ProjectDirectory="$(MSBuildProjectDirectory)"
+        RootDirectory="$(ImprintRootDirectory)"
         TargetAgents="$(ImprintTargetAgents)"
         AutoDetectAgents="$(ImprintAutoDetectAgents)"
         DefaultAgents="$(ImprintDefaultAgents)"
@@ -231,6 +232,7 @@
 
     <ImprintCleanContent
         ProjectDirectory="$(MSBuildProjectDirectory)"
+        RootDirectory="$(ImprintRootDirectory)"
         TargetAgents="$(ImprintTargetAgents)"
         AutoDetectAgents="$(ImprintAutoDetectAgents)"
         DefaultAgents="$(ImprintDefaultAgents)" />
@@ -247,6 +249,7 @@
     <ImprintMergeMcpServers
         McpFragmentFiles="@(ImprintMcpFragment)"
         ProjectDirectory="$(MSBuildProjectDirectory)"
+        RootDirectory="$(ImprintRootDirectory)"
         TargetAgents="$(ImprintTargetAgents)"
         AutoDetectAgents="$(ImprintAutoDetectAgents)"
         DefaultAgents="$(ImprintDefaultAgents)" />
@@ -260,6 +263,7 @@
 
     <ImprintCleanMcpServers
         ProjectDirectory="$(MSBuildProjectDirectory)"
+        RootDirectory="$(ImprintRootDirectory)"
         TargetAgents="$(ImprintTargetAgents)"
         AutoDetectAgents="$(ImprintAutoDetectAgents)"
         DefaultAgents="$(ImprintDefaultAgents)" />

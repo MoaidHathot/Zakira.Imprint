@@ -79,6 +79,12 @@ ls .cursor/rules/
 
 # Roo Code
 ls .roo/rules/
+
+# OpenCode
+ls .opencode/skills/
+
+# Windsurf
+ls .windsurf/rules/
 ```
 
 ### Check MCP Configuration
@@ -95,6 +101,12 @@ cat .cursor/mcp.json
 
 # Roo Code
 cat .roo/mcp.json
+
+# OpenCode
+cat opencode.json
+
+# Windsurf
+cat .windsurf/mcp.json
 ```
 
 ### Check the Manifest
@@ -142,6 +154,8 @@ By default, Imprint detects agents by looking for their directories:
 | `.claude/` | claude |
 | `.cursor/` | cursor |
 | `.roo/` | roo |
+| `.opencode/` | opencode |
+| `.windsurf/` | windsurf |
 
 To enable auto-detection, create the agent directory:
 
@@ -150,6 +164,8 @@ mkdir .github   # Enable Copilot
 mkdir .claude   # Enable Claude
 mkdir .cursor   # Enable Cursor
 mkdir .roo      # Enable Roo Code
+mkdir .opencode # Enable OpenCode
+mkdir .windsurf # Enable Windsurf
 ```
 
 ### Explicit Configuration
@@ -253,12 +269,16 @@ If you prefer to not commit generated files:
 .claude/skills/
 .cursor/rules/
 .roo/rules/
+.opencode/skills/
+.windsurf/rules/
 
 # Ignore generated MCP configs (if desired)
 # .vscode/mcp.json
 # .claude/mcp.json
 # .cursor/mcp.json
 # .roo/mcp.json
+# opencode.json
+# .windsurf/mcp.json
 ```
 
 ---
@@ -313,7 +333,7 @@ Check the package documentation for required variables.
 **Check agent directories exist:**
 ```bash
 ls -la | grep -E '^\.'
-# Should show .github, .claude, .cursor, or .roo
+# Should show .github, .claude, .cursor, .roo, .opencode, or .windsurf
 ```
 
 **Check the manifest:**
@@ -353,7 +373,7 @@ grep -i imprint *.csproj
 
 **Check auto-detection directories:**
 ```bash
-ls -d .* 2>/dev/null | grep -E '\.github|\.claude|\.cursor'
+ls -d .* 2>/dev/null | grep -E '\.github|\.claude|\.cursor|\.roo|\.opencode|\.windsurf'
 ```
 
 ---
