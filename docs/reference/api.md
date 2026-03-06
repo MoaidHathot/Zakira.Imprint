@@ -350,7 +350,7 @@ Resolves the final list of target agents using priority:
 public static List<string> DetectAgents(string rootDirectory)
 ```
 
-Scans for agent directories (`.github`, `.claude`, `.cursor`, `.roo`, `.opencode`, `.windsurf`) and returns detected agents.
+Scans for agent directories (`.github`, `.claude`, `.cursor`, `.roo`, `.opencode`, `.windsurf`, `.agents`) and returns detected agents.
 
 #### GetSkillsPath
 
@@ -374,7 +374,7 @@ Returns the absolute MCP config file path for an agent.
 public static string GetMcpRootKey(string agentName)
 ```
 
-Returns the JSON root key for MCP servers (`"servers"` for VS Code, `"mcpServers"` for Claude/Cursor/Roo Code/Windsurf, `"mcp"` for OpenCode).
+Returns the JSON root key for MCP servers (`"servers"` for VS Code, `"mcpServers"` for Claude/Cursor/Roo Code/Windsurf/Agents, `"mcp"` for OpenCode).
 
 ### KnownAgents Dictionary
 
