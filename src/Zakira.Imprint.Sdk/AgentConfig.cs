@@ -91,6 +91,13 @@ namespace Zakira.Imprint.Sdk
                     McpSubPath: ".windsurf",
                     McpFileName: "mcp.json",
                     McpRootKey: "mcpServers"),
+                ["agents"] = new AgentDefinition(
+                    Name: "agents",
+                    DetectionDir: ".agents",
+                    SkillsSubPath: ".agents" + Path.DirectorySeparatorChar + "skills",
+                    McpSubPath: ".agents",
+                    McpFileName: "mcp.json",
+                    McpRootKey: "mcpServers"),
             };
 
         /// <summary>

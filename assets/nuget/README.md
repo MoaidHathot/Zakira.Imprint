@@ -98,6 +98,8 @@ Imprint includes multi-agent support. Instead of targeting only GitHub Copilot, 
 | `cursor` | `.cursor/` exists | `.cursor/rules/` | `.cursor/mcp.json` | `mcpServers` |
 | `roo` | `.roo/` exists | `.roo/rules/` | `.roo/mcp.json` | `mcpServers` |
 | `opencode` | `.opencode/` exists | `.opencode/skills/` | `opencode.json` (project root) | `mcp` |
+| `windsurf` | `.windsurf/` exists | `.windsurf/rules/` | `.windsurf/mcp.json` (project root) | `mcpServers` |
+| `agents` | `.agents/` exists | `.agents/skills/` | `.agents/mcp.json` | `mcpServers` |
 
 Unknown agent names fall back to `.{name}/skills/` for skills and `.{name}/mcp.json` for MCP.
 

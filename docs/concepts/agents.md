@@ -10,14 +10,14 @@ permalink: /concepts/agents
 # Multi-Agent Support
 {: .fs-9 }
 
-Target GitHub Copilot, Claude, Cursor, Roo Code, OpenCode, and more - all at once.
+Target GitHub Copilot, Claude, Cursor, Roo Code, OpenCode, Agents, and more - all at once.
 {: .fs-6 .fw-300 }
 
 ---
 
 ## Supported Agents
 
-Imprint has built-in support for five AI assistants:
+Imprint has built-in support for seven AI assistants:
 
 | Agent | Skills Directory | MCP Config File | MCP Root Key |
 |:------|:-----------------|:----------------|:-------------|
@@ -26,6 +26,8 @@ Imprint has built-in support for five AI assistants:
 | `cursor` | `.cursor/rules/` | `.cursor/mcp.json` | `mcpServers` |
 | `roo` | `.roo/rules/` | `.roo/mcp.json` | `mcpServers` |
 | `opencode` | `.opencode/skills/` | `opencode.json` (project root) | `mcp` |
+| `windsurf` | `.windsurf/rules/` | `windsurf/mcp.json` (project root) | `mcpServers` |
+| `agents` | `.agents/skills/` | `.agents/mcp.json` | `mcpServers` |
 
 ### Agent-Specific Conventions
 
@@ -57,6 +59,11 @@ Each AI assistant has its own conventions:
 - Uses `mcp` as the root key
 - MCP servers use a different format: `{ "type": "local", "command": ["npx", "-y", "..."], "enabled": true }`
 
+**Agents**
+- Skills in `.agents/skills/`
+- MCP config in `.agents/mcp.json`
+- Uses `mcpServers` as the root key in `mcp.json`
+
 ---
 
 ## Agent Detection
@@ -70,6 +77,7 @@ Project Directory
 ├── .cursor/         ← Cursor detected
 ├── .roo/            ← Roo Code detected
 ├── .opencode/       ← OpenCode detected
+├── .agents/         ← Agents detected
 └── MyProject.csproj
 ```
 
@@ -82,6 +90,7 @@ The detection logic checks for the existence of these directories:
 | `.cursor/` | `cursor` |
 | `.roo/` | `roo` |
 | `.opencode/` | `opencode` |
+| `.agents/` | `agents` |
 
 ---
 

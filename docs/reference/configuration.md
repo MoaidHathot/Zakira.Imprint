@@ -79,6 +79,7 @@ When enabled, Imprint scans the project directory for existing agent folders:
 - `.roo/` → Roo Code detected
 - `.opencode/` → OpenCode detected
 - `.windsurf/` → Windsurf detected
+- `.agents/` → Agents detected
 
 ```xml
 <PropertyGroup>
@@ -97,7 +98,7 @@ Explicitly specifies which agents to target. When set, disables auto-detection.
 | **Type** | String (semicolon-separated) |
 | **Default** | *(empty)* |
 | **Scope** | Consumer projects |
-| **Values** | `copilot`, `claude`, `cursor`, `roo`, `opencode`, `windsurf` |
+| **Values** | `copilot`, `claude`, `cursor`, `roo`, `opencode`, `windsurf`, `agents` |
 
 ```xml
 <PropertyGroup>

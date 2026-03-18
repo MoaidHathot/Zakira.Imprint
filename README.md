@@ -103,6 +103,7 @@ Imprint includes multi-agent support. Instead of targeting only GitHub Copilot, 
 | `roo` | `.roo/` exists | `.roo/rules/` | `.roo/mcp.json` | `mcpServers` |
 | `opencode` | `.opencode/` exists | `.opencode/skills/` | `opencode.json` (project root) | `mcp` |
 | `windsurf` | `.windsurf/` exists | `.windsurf/rules/` | `.windsurf/mcp.json` | `mcpServers` |
+| `agents` | `.agents/` exists | `.agents/skills/` | `.agents/mcp.json` | `mcpServers` |
 
 Unknown agent names fall back to `.{name}/rules/` for skills and `.{name}/mcp.json` for MCP.
 
@@ -118,7 +119,7 @@ Imprint determines which agents to target using a priority hierarchy:
    ```
 
 2. **Auto-detection** (default, ON) — Scans for agent directories at build time. If `.github/` and `.claude/` exist, both `copilot` and `claude` are targeted.
-   Supported detection directories: `.github/` (copilot), `.claude/` (claude), `.cursor/` (cursor), `.roo/` (roo), `.opencode/` (opencode), `.windsurf/` (windsurf).
+   Supported detection directories: `.github/` (copilot), `.claude/` (claude), `.cursor/` (cursor), `.roo/` (roo), `.opencode/` (opencode), `.windsurf/` (windsurf), `.agents/` (agents).
 
 3. **Default fallback** — If no directories are detected:
    ```xml
