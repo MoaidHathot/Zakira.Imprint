@@ -238,7 +238,7 @@ When you run `dotnet pack` on your Imprint package:
 
 1. **Generate Targets** (`Imprint_GenerateTargetsFile`): The SDK reads all `<Imprint>` items from your `.csproj` and generates a `.targets` file at `obj/{Configuration}/{TFM}/Imprint/{PackageId}.targets`. This file declares `ImprintContent` and `ImprintMcpFragment` items that consumers will use.
 
-2. **Include Content** (`Imprint_IncludeContentInPackage`): The SDK adds the generated `.targets` file to both `build/` and `buildTransitive/` package paths, and includes all content files (skills, MCP fragments) in the `content/` folder.
+2. **Include Content + Cross-Targeting Import** (`Imprint_IncludeContentInPackage`): The SDK adds the generated `.targets` file to both `build/` and `buildTransitive/` package paths, includes all content files (skills, MCP fragments) in the `content/` folder, and for multi-targeted package projects (`<TargetFrameworks>...`) imports via `buildMultiTargeting/` in the outer pack build so Imprint pack targets can run before `_GetPackageFiles`.
 
 3. **NuGet Pack**: The package is created with all necessary files — no manual `.targets` authoring required.
 

@@ -39,6 +39,11 @@ Common issues and solutions when working with Zakira.Imprint.
    - Check if your skill files match patterns in `.gitignore`
    - The SDK respects standard ignore patterns
 
+4. **Using an SDK version without cross-targeting pack imports:**
+   - In multi-targeted package projects (`<TargetFrameworks>...`), NuGet pack runs key collection targets in an outer cross-targeting build.
+   - If Imprint targets are not imported in that outer build, generated `build/*.targets` and `content/skills/*` entries are omitted.
+   - Upgrade to a Zakira.Imprint.Sdk version that includes `buildMultiTargeting` assets.
+
 **Diagnosis:**
 ```bash
 # Build with detailed logging
