@@ -42,6 +42,8 @@
     <None Include="build\Zakira.Imprint.Sdk.targets" Pack="true" PackagePath="build" />
     <None Include="buildTransitive\Zakira.Imprint.Sdk.props" Pack="true" PackagePath="buildTransitive" />
     <None Include="buildTransitive\Zakira.Imprint.Sdk.targets" Pack="true" PackagePath="buildTransitive" />
+    <None Include="buildMultiTargeting\Zakira.Imprint.Sdk.props" Pack="true" PackagePath="buildMultiTargeting" />
+    <None Include="buildMultiTargeting\Zakira.Imprint.Sdk.targets" Pack="true" PackagePath="buildMultiTargeting" />
 
     <!-- Include package README -->
     <None Include="..\..\assets\nuget\README.md" Pack="true" PackagePath="" />
