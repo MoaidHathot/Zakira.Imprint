@@ -35,6 +35,7 @@ public class ExplicitAgentTests : IDisposable
     [InlineData("roo", ".roo/rules/")]
     [InlineData("opencode", ".opencode/skills/")]
     [InlineData("windsurf", ".windsurf/rules/")]
+    [InlineData("kiro", ".kiro/skills/")]
     public async Task ExplicitAgent_NoAgentDirectory_StillCreatesFiles(string agentName, string expectedSkillPath)
     {
         // Arrange - Create and pack a skill package
@@ -52,6 +53,7 @@ public class ExplicitAgentTests : IDisposable
         Assert.False(Directory.Exists(Path.Combine(projectDir, ".roo")));
         Assert.False(Directory.Exists(Path.Combine(projectDir, ".opencode")));
         Assert.False(Directory.Exists(Path.Combine(projectDir, ".windsurf")));
+        Assert.False(Directory.Exists(Path.Combine(projectDir, ".kiro")));
 
         // Act - Build the project
         var result = await BuildProjectAsync(projectDir);

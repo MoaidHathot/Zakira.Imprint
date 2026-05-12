@@ -311,6 +311,22 @@ Different AI assistants use slightly different MCP formats:
 }
 ```
 
+### Kiro
+
+**File:** `.kiro/settings/mcp.json`
+**Root Key:** `mcpServers`
+
+```json
+{
+  "mcpServers": {
+    "my-server": {
+      "command": "npx",
+      "args": ["-y", "@org/server"]
+    }
+  }
+}
+```
+
 Imprint handles these differences automatically. You write one fragment with `servers`, and Imprint translates to the correct format for each agent.
 
 ---

@@ -134,6 +134,7 @@ After installing a skill package and building:
    ls .cursor/rules/    # Cursor
    ls .roo/rules/       # Roo Code
    ls .opencode/skills/ # OpenCode
+   ls .kiro/skills/     # Kiro
    ls .windsurf/rules/  # Windsurf
    ```
 

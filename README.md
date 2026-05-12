@@ -10,11 +10,11 @@
 
 ## Overview
 
-Imprint is a pattern for distributing AI Skills (those `SKILLS.md` files for GitHub Copilot, Claude, Cursor, Roo Code, and other AI assistants) and MCP Server configuration via NuGet packages. When you add an Imprint package to your project:
+Imprint is a pattern for distributing AI Skills (those `SKILLS.md` files for GitHub Copilot, Claude, Cursor, Roo Code, Kiro, and other AI assistants) and MCP Server configuration via NuGet packages. When you add an Imprint package to your project:
 
 1. **On `dotnet build`**: Skills are automatically copied to each AI agent's native directory
 2. **On `dotnet clean`**: Skills are removed (including empty parent directories)
-3. **Multi-agent support**: Targets Copilot, Claude, Cursor, Roo Code, OpenCode, and Windsurf simultaneously — each gets files in its native location (if exists)
+3. **Multi-agent support**: Targets Copilot, Claude, Cursor, Roo Code, OpenCode, Kiro, and Windsurf simultaneously — each gets files in its native location (if exists)
 4. **All file types supported**: Not just `.md` — scripts, configs, and any other files in the `skills/` folder are included
 5. **MCP Server Injection**: Packages can inject [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) server configurations into each agent's `mcp.json`
 6. **Code + Skills**: Packages can ship both a compiled DLL library **and** AI skills — consumers get runtime APIs and AI guidance from a single NuGet install
@@ -56,10 +56,10 @@ dotnet add package <some-Imprint-package>
 # Build to install skills (happens automatically before build)
 dotnet build
 
-# Skills are now at .github/skills/, .claude/skills/, .cursor/rules/, .roo/rules/ etc.
+# Skills are now at .github/skills/, .claude/skills/, .cursor/rules/, .kiro/skills/ etc.
 ```
 
-Imprint auto-detects which AI agents you use by scanning for their configuration directories (`.github/`, `.claude/`, `.cursor/`, `.roo/`, `.opencode/`, `.windsurf/`). Skills are copied to each detected agent's native location.
+Imprint auto-detects which AI agents you use by scanning for their configuration directories (`.github/`, `.claude/`, `.cursor/`, `.roo/`, `.opencode/`, `.windsurf/`, `.kiro/`). Skills are copied to each detected agent's native location.
 
 A shared `.gitignore` is automatically generated at `.imprint/.gitignore`, so no manual `.gitignore` configuration is needed.
 
@@ -104,6 +104,7 @@ Imprint includes multi-agent support. Instead of targeting only GitHub Copilot, 
 | `opencode` | `.opencode/` exists | `.opencode/skills/` | `opencode.json` (project root) | `mcp` |
 | `windsurf` | `.windsurf/` exists | `.windsurf/rules/` | `.windsurf/mcp.json` | `mcpServers` |
 | `agents` | `.agents/` exists | `.agents/skills/` | `.agents/mcp.json` | `mcpServers` |
+| `kiro` | `.kiro/` exists | `.kiro/skills/` | `.kiro/settings/mcp.json` | `mcpServers` |
 
 Unknown agent names fall back to `.{name}/rules/` for skills and `.{name}/mcp.json` for MCP.
 
@@ -119,7 +120,7 @@ Imprint determines which agents to target using a priority hierarchy:
    ```
 
 2. **Auto-detection** (default, ON) — Scans for agent directories at build time. If `.github/` and `.claude/` exist, both `copilot` and `claude` are targeted.
-   Supported detection directories: `.github/` (copilot), `.claude/` (claude), `.cursor/` (cursor), `.roo/` (roo), `.opencode/` (opencode), `.windsurf/` (windsurf), `.agents/` (agents).
+   Supported detection directories: `.github/` (copilot), `.claude/` (claude), `.cursor/` (cursor), `.roo/` (roo), `.opencode/` (opencode), `.windsurf/` (windsurf), `.agents/` (agents), `.kiro/` (kiro).
 
 3. **Default fallback** — If no directories are detected:
    ```xml
@@ -328,6 +329,7 @@ Different AI agents use different JSON schemas for their MCP configuration files
 | Roo Code | `mcpServers` | `{"mcpServers": {"my-server": {...}}}` |
 | OpenCode | `mcp` | `{"mcp": {"my-server": {...}}}` |
 | Windsurf | `mcpServers` | `{"mcpServers": {"my-server": {...}}}` |
+| Kiro | `mcpServers` | `{"mcpServers": {"my-server": {...}}}` |
 
 **Package authors always write fragments using `"servers"`** as the root key. The SDK reads these fragments and transforms them to each agent's expected schema when writing to their respective `mcp.json` files. The inner server definition (`command`, `args`, `type`, `env`) is identical across all agents.
 

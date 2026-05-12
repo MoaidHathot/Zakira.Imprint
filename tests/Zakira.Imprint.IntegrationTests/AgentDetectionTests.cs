@@ -53,6 +53,7 @@ public class AgentDetectionTests : IDisposable
         Assert.False(Directory.Exists(Path.Combine(projectDir, ".roo", "rules")), ".roo/rules should not exist");
         Assert.False(Directory.Exists(Path.Combine(projectDir, ".opencode", "skills")), ".opencode/skills should not exist");
         Assert.False(Directory.Exists(Path.Combine(projectDir, ".windsurf", "rules")), ".windsurf/rules should not exist");
+        Assert.False(Directory.Exists(Path.Combine(projectDir, ".kiro", "skills")), ".kiro/skills should not exist");
     }
 
     [Theory]
@@ -62,6 +63,7 @@ public class AgentDetectionTests : IDisposable
     [InlineData("roo", ".roo", "rules")]
     [InlineData("opencode", ".opencode", "skills")]
     [InlineData("windsurf", ".windsurf", "rules")]
+    [InlineData("kiro", ".kiro", "skills")]
     public async Task SingleAgent_AutoDetected_CopiesContentToCorrectLocation(
         string agentName, string agentDir, string skillSubdir)
     {

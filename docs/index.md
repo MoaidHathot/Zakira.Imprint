@@ -2,7 +2,7 @@
 layout: default
 title: Home
 nav_order: 1
-description: "Zakira.Imprint - Distribute AI Skills via NuGet packages for GitHub Copilot, Claude, Cursor, Roo Code, OpenCode, Windsurf, and other AI assistants."
+description: "Zakira.Imprint - Distribute AI Skills via NuGet packages for GitHub Copilot, Claude, Cursor, Roo Code, OpenCode, Kiro, Windsurf, and other AI assistants."
 permalink: /
 ---
 
@@ -13,7 +13,7 @@ permalink: /
 # Zakira.Imprint
 {: .fs-9 }
 
-Distribute AI Skills via NuGet packages. Ship SKILL.md files for GitHub Copilot, Claude, Cursor, Roo Code, OpenCode, Windsurf, and other AI assistants as easily as shipping a library.
+Distribute AI Skills via NuGet packages. Ship SKILL.md files for GitHub Copilot, Claude, Cursor, Roo Code, OpenCode, Kiro, Windsurf, and other AI assistants as easily as shipping a library.
 {: .fs-6 .fw-300 }
 
 [Get Started]({{ site.baseurl }}/getting-started){: .btn .btn-primary .fs-5 .mb-4 .mb-md-0 .mr-2 }
@@ -35,7 +35,7 @@ Distribute AI Skills via NuGet packages. Ship SKILL.md files for GitHub Copilot,
 ```
 dotnet add package Contoso.Skills.AzureSecurity
 dotnet build
-# Skills are now available in GitHub Copilot, Claude, Cursor, Roo Code, OpenCode, and Windsurf!
+# Skills are now available in GitHub Copilot, Claude, Cursor, Roo Code, OpenCode, Kiro, and Windsurf!
 ```
 
 ## Key Features
@@ -51,6 +51,7 @@ Imprint automatically detects and targets multiple AI assistants simultaneously:
 | Cursor | `.cursor/rules/` | `.cursor/mcp.json` |
 | Roo Code | `.roo/rules/` | `.roo/mcp.json` |
 | OpenCode | `.opencode/skills/` | `opencode.json` |
+| Kiro | `.kiro/skills/` | `.kiro/settings/mcp.json` |
 | Windsurf | `.windsurf/rules/` | `.windsurf/mcp.json` |
 
 ### Zero Configuration
@@ -162,6 +163,7 @@ After build, the skill is available at:
 - `.cursor/rules/security/SKILL.md` (Cursor)
 - `.roo/rules/security/SKILL.md` (Roo Code)
 - `.opencode/skills/security/SKILL.md` (OpenCode)
+- `.kiro/skills/security/SKILL.md` (Kiro)
 - `.windsurf/rules/security/SKILL.md` (Windsurf)
 
 ---

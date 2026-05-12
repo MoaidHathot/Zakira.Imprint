@@ -17,7 +17,7 @@ Create and consume AI skill packages in minutes.
 ## Prerequisites
 
 - [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) or later
-- An AI assistant (GitHub Copilot, Claude, Cursor, Roo Code, OpenCode, or Windsurf)
+- An AI assistant (GitHub Copilot, Claude, Cursor, Roo Code, OpenCode, Kiro, or Windsurf)
 
 ---
 
@@ -60,6 +60,9 @@ ls .opencode/skills/
 
 # For Windsurf users
 ls .windsurf/rules/
+
+# For Kiro users
+ls .kiro/skills/
 ```
 
 That's it! Your AI assistant now has access to the skills from the package.
@@ -182,6 +185,7 @@ When you build a project with Imprint packages installed, several things happen:
 | `.cursor/rules/*` | Skills for Cursor |
 | `.roo/rules/*` | Skills for Roo Code |
 | `.opencode/skills/*` | Skills for OpenCode |
+| `.kiro/skills/*` | Skills for Kiro |
 | `.windsurf/rules/*` | Skills for Windsurf |
 | `.imprint/manifest.json` | Tracks installed files for cleanup |
 | `.imprint/.gitignore` | Prevents manifest from being committed |
@@ -225,6 +229,7 @@ Imprint automatically detects which AI agents you're using by looking for their 
 | `.cursor/` | Cursor |
 | `.roo/` | Roo Code |
 | `.opencode/` | OpenCode |
+| `.kiro/` | Kiro |
 | `.windsurf/` | Windsurf |
 
 If no agent directories are found, Imprint defaults to targeting GitHub Copilot.
@@ -258,7 +263,7 @@ Now that you have the basics:
 ### Skills Not Appearing
 
 1. **Check the build output** - Look for `Imprint_CopyContent` in the build logs
-2. **Verify agent directories exist** - Create `.github/`, `.claude/`, `.cursor/`, `.roo/`, `.opencode/`, or `.windsurf/` if needed
+2. **Verify agent directories exist** - Create `.github/`, `.claude/`, `.cursor/`, `.roo/`, `.opencode/`, `.kiro/`, or `.windsurf/` if needed
 3. **Check the manifest** - Look at `.imprint/manifest.json` to see what was installed
 
 ### Package Not Working
