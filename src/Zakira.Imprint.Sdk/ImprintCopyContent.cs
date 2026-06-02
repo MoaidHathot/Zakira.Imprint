@@ -155,7 +155,7 @@ namespace Zakira.Imprint.Sdk
                                 Directory.CreateDirectory(destDir);
                             }
 
-                            File.Copy(sourceFile, destFile, overwrite: true);
+                            CopyFileSafe(sourceFile, destFile);
                             manifestPackages[packageId][agent].Add(destFile);
 
                             // Track for gitignore
@@ -775,6 +775,41 @@ namespace Zakira.Imprint.Sdk
             {
                 // Ignore - directory might be in use or protected
             }
+        }
+
+        /// <summary>
+        /// Copies a file to the destination, skipping if already identical.
+        /// Handles IOException gracefully for parallel builds where multiple projects
+        /// reference the same package and race to write the same destination file.
+        /// </summary>
+        private static void CopyFileSafe(string sourceFile, string destFile)
+        {
+            if (File.Exists(destFile) && FilesAreIdentical(sourceFile, destFile))
+            {
+                return; // Already up-to-date, skip
+            }
+
+            try
+            {
+                File.Copy(sourceFile, destFile, overwrite: true);
+            }
+            catch (IOException)
+            {
+                // Another parallel build process may have already copied an identical file.
+                // Verify the destination matches the source before swallowing the error.
+                if (!File.Exists(destFile) || !FilesAreIdentical(sourceFile, destFile))
+                {
+                    throw;
+                }
+            }
+        }
+
+        private static bool FilesAreIdentical(string a, string b)
+        {
+            var infoA = new FileInfo(a);
+            var infoB = new FileInfo(b);
+            return infoA.Length == infoB.Length &&
+                   infoA.LastWriteTimeUtc == infoB.LastWriteTimeUtc;
         }
 
         private void EnsureImprintGitignore(string imprintDir)
