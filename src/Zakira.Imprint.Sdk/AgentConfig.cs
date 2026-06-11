@@ -84,6 +84,13 @@ namespace Zakira.Imprint.Sdk
                     McpSubPath: "",
                     McpFileName: "opencode.json",
                     McpRootKey: "mcp"),
+                ["kiro"] = new AgentDefinition(
+                    Name: "kiro",
+                    DetectionDir: ".kiro",
+                    SkillsSubPath: ".kiro" + Path.DirectorySeparatorChar + "skills",
+                    McpSubPath: ".kiro" + Path.DirectorySeparatorChar + "settings",
+                    McpFileName: "mcp.json",
+                    McpRootKey: "mcpServers"),
                 ["windsurf"] = new AgentDefinition(
                     Name: "windsurf",
                     DetectionDir: ".windsurf",
@@ -96,13 +103,6 @@ namespace Zakira.Imprint.Sdk
                     DetectionDir: ".agents",
                     SkillsSubPath: ".agents" + Path.DirectorySeparatorChar + "skills",
                     McpSubPath: ".agents",
-                    McpFileName: "mcp.json",
-                    McpRootKey: "mcpServers"),
-                ["kiro"] = new AgentDefinition(
-                    Name: "kiro",
-                    DetectionDir: ".kiro",
-                    SkillsSubPath: ".kiro" + Path.DirectorySeparatorChar + "skills",
-                    McpSubPath: ".kiro" + Path.DirectorySeparatorChar + "settings",
                     McpFileName: "mcp.json",
                     McpRootKey: "mcpServers"),
             };

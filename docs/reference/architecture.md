@@ -55,7 +55,7 @@ Zakira.Imprint operates in two distinct phases:
 │  │ (ImprintMcp-│    └──────────────────────┘    │ .cursor/mcp.json      │   │
 │  │ Fragment)   │                                │ .roo/mcp.json         │   │
 │  └─────────────┘                                │ opencode.json         │   │
-│  └─────────────┘                                │ .kiro/settings/mcp.json│  │
+│  └─────────────┘                                │.kiro/settings/mcp.json│   │
 │                                                 │ .windsurf/mcp.json    │   │
 │                                                 └───────────────────────┘   │
 └─────────────────────────────────────────────────────────────────────────────┘

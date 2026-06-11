@@ -390,7 +390,7 @@ Contains definitions for known agents with their directory conventions.
 public record AgentDefinition(
     string Name,           // "copilot", "claude", "cursor", "roo", "opencode", "kiro", "windsurf"
     string DetectionDir,   // ".github", ".claude", ".cursor", ".roo", ".opencode", ".kiro", ".windsurf"
-    string SkillsSubPath,  // ".github/skills", ".claude/skills", ".cursor/rules", ".kiro/skills", ".windsurf/rules"
+    string SkillsSubPath,  // ".github/skills", ".claude/skills", ".cursor/rules", ".roo/rules", ".opencode/skills", ".kiro/skills", ".windsurf/rules"
     string McpSubPath,     // ".vscode", ".claude", ".cursor", ".roo", "" (root for opencode), ".kiro/settings", ".windsurf"
     string McpFileName,    // "mcp.json" or "opencode.json"
     string McpRootKey      // "servers", "mcpServers", or "mcp"
