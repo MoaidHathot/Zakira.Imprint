@@ -39,6 +39,7 @@ public class McpTransformationTests : IDisposable
     [InlineData("cursor", ".cursor/mcp.json", "mcpServers")]
     [InlineData("roo", ".roo/mcp.json", "mcpServers")]
     [InlineData("windsurf", ".windsurf/mcp.json", "mcpServers")]
+    [InlineData("kiro", ".kiro/settings/mcp.json", "mcpServers")]
     public async Task StandardAgents_McpFormat_UsesStandardFormat(
         string agentName, string expectedMcpPath, string expectedRootKey)
     {

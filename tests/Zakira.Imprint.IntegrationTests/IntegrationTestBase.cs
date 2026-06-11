@@ -114,6 +114,7 @@ public class Class1 { }");
             "roo" => ".roo",
             "opencode" => ".opencode",
             "windsurf" => ".windsurf",
+            "kiro" => ".kiro",
             _ => $".{agentName.ToLowerInvariant()}"
         };
         

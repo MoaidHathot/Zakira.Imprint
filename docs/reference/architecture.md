@@ -45,7 +45,8 @@ Zakira.Imprint operates in two distinct phases:
 │  │ (ImprintCon-│    └──────────────────────┘    │ .cursor/rules/        │   │
 │  │ tent items) │                                │ .roo/rules/           │   │
 │  └─────────────┘                                │ .opencode/skills/     │   │
-│  └─────────────┘                                │ .windsurf/rules/      │   │
+│  └─────────────┘                                │ .kiro/skills/         │   │
+│                                                 │ .windsurf/rules/      │   │
 │                                                 └───────────────────────┘   │
 │                                                                             │
 │  ┌─────────────┐    ┌──────────────────────┐    ┌───────────────────────┐   │
@@ -54,7 +55,8 @@ Zakira.Imprint operates in two distinct phases:
 │  │ (ImprintMcp-│    └──────────────────────┘    │ .cursor/mcp.json      │   │
 │  │ Fragment)   │                                │ .roo/mcp.json         │   │
 │  └─────────────┘                                │ opencode.json         │   │
-│  └─────────────┘                                │ .windsurf/mcp.json    │   │
+│  └─────────────┘                                │ .kiro/settings/mcp.json│  │
+│                                                 │ .windsurf/mcp.json    │   │
 │                                                 └───────────────────────┘   │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -112,7 +114,7 @@ Before copying files, Imprint determines which AI agents to target.
 
 **Resolution order:**
 1. **Explicit setting:** `<ImprintTargetAgents>copilot;claude</ImprintTargetAgents>`
-2. **Auto-detection:** Scans for `.github/`, `.claude/`, `.cursor/`, `.roo/`, `.opencode/`, `.windsurf/` directories
+2. **Auto-detection:** Scans for `.github/`, `.claude/`, `.cursor/`, `.roo/`, `.opencode/`, `.kiro/`, `.windsurf/` directories
 3. **Fallback:** Uses `<ImprintDefaultAgents>`
 
 **Known agents:**
@@ -124,6 +126,7 @@ Before copying files, Imprint determines which AI agents to target.
 | cursor | `.cursor` | `.cursor/rules/` | `.cursor/mcp.json` | `mcpServers` |
 | roo | `.roo` | `.roo/rules/` | `.roo/mcp.json` | `mcpServers` |
 | opencode | `.opencode` | `.opencode/skills/` | `opencode.json` | `mcp` |
+| kiro | `.kiro` | `.kiro/skills/` | `.kiro/settings/mcp.json` | `mcpServers` |
 | windsurf | `.windsurf` | `.windsurf/rules/` | `.windsurf/mcp.json` | `mcpServers` |
 
 ### 2. Skill File Copying (`ImprintCopyContent`)
@@ -176,7 +179,7 @@ Solution: Use `<ImprintPrefix>` on one of the packages.
 
 **Agent-specific root keys:**
 - VS Code/Copilot: `"servers"` (matches VS Code MCP extension)
-- Claude/Cursor/Roo Code/Windsurf: `"mcpServers"` (matches their native format)
+- Claude/Cursor/Roo Code/Kiro/Windsurf: `"mcpServers"` (matches their native format)
 - OpenCode: `"mcp"` (OpenCode's native format)
 
 ---

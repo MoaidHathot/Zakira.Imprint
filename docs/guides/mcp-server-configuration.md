@@ -405,6 +405,22 @@ Imprint adapts the MCP format for each agent:
 }
 ```
 
+### Kiro
+
+**Location:** `.kiro/settings/mcp.json`
+**Root key:** `mcpServers`
+
+```json
+{
+  "mcpServers": {
+    "my-server": {
+      "command": "npx",
+      "args": ["-y", "@your-org/your-mcp-server"]
+    }
+  }
+}
+```
+
 You write one fragment with `servers`, and Imprint handles the translation.
 
 ---
@@ -425,6 +441,7 @@ cat .claude/mcp.json   # Claude
 cat .cursor/mcp.json   # Cursor
 cat .roo/mcp.json      # Roo Code
 cat opencode.json      # OpenCode
+cat .kiro/settings/mcp.json  # Kiro
 ```
 
 ### Step 3: Verify Server Starts

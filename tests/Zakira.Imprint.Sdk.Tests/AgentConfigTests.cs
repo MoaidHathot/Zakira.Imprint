@@ -145,6 +145,14 @@ public class AgentConfigTests : IDisposable
     }
 
     [Fact]
+    public void DetectAgents_FindsKiro()
+    {
+        Directory.CreateDirectory(Path.Combine(_testDir, ".kiro"));
+        var detected = AgentConfig.DetectAgents(_testDir);
+        Assert.Contains("kiro", detected);
+    }
+
+    [Fact]
     public void DetectAgents_FindsMultiple()
     {
         Directory.CreateDirectory(Path.Combine(_testDir, ".github"));
@@ -153,14 +161,16 @@ public class AgentConfigTests : IDisposable
         Directory.CreateDirectory(Path.Combine(_testDir, ".roo"));
         Directory.CreateDirectory(Path.Combine(_testDir, ".opencode"));
         Directory.CreateDirectory(Path.Combine(_testDir, ".agents"));
+        Directory.CreateDirectory(Path.Combine(_testDir, ".kiro"));
         var detected = AgentConfig.DetectAgents(_testDir);
-        Assert.Equal(6, detected.Count);
+        Assert.Equal(7, detected.Count);
         Assert.Contains("copilot", detected);
         Assert.Contains("claude", detected);
         Assert.Contains("cursor", detected);
         Assert.Contains("roo", detected);
         Assert.Contains("opencode", detected);
         Assert.Contains("agents", detected);
+        Assert.Contains("kiro", detected);
     }
 
     [Fact]
@@ -275,6 +285,13 @@ public class AgentConfigTests : IDisposable
     }
 
     [Fact]
+    public void GetSkillsPath_Kiro()
+    {
+        var path = AgentConfig.GetSkillsPath(_testDir, "kiro");
+        Assert.Equal(Path.Combine(_testDir, ".kiro", "skills"), path);
+    }
+
+    [Fact]
     public void GetSkillsPath_UnknownAgent_UsesConvention()
     {
         var path = AgentConfig.GetSkillsPath(_testDir, "futureagent");
@@ -323,6 +340,13 @@ public class AgentConfigTests : IDisposable
     {
         var path = AgentConfig.GetMcpPath(_testDir, "agents");
         Assert.Equal(Path.Combine(_testDir, ".agents", "mcp.json"), path);
+    }
+
+    [Fact]
+    public void GetMcpPath_Kiro()
+    {
+        var path = AgentConfig.GetMcpPath(_testDir, "kiro");
+        Assert.Equal(Path.Combine(_testDir, ".kiro", "settings", "mcp.json"), path);
     }
 
     [Fact]
@@ -377,6 +401,13 @@ public class AgentConfigTests : IDisposable
     }
 
     [Fact]
+    public void GetMcpDirectory_Kiro()
+    {
+        var dir = AgentConfig.GetMcpDirectory(_testDir, "kiro");
+        Assert.Equal(Path.Combine(_testDir, ".kiro", "settings"), dir);
+    }
+
+    [Fact]
     public void GetMcpDirectory_UnknownAgent_UsesConvention()
     {
         var dir = AgentConfig.GetMcpDirectory(_testDir, "futureagent");
@@ -386,9 +417,9 @@ public class AgentConfigTests : IDisposable
     // ── KnownAgents ─────────────────────────────────────────────────
 
     [Fact]
-    public void KnownAgents_ContainsSevenAgents()
+    public void KnownAgents_ContainsEightAgents()
     {
-        Assert.Equal(7, AgentConfig.KnownAgents.Count);
+        Assert.Equal(8, AgentConfig.KnownAgents.Count);
         Assert.True(AgentConfig.KnownAgents.ContainsKey("copilot"));
         Assert.True(AgentConfig.KnownAgents.ContainsKey("claude"));
         Assert.True(AgentConfig.KnownAgents.ContainsKey("cursor"));
@@ -396,6 +427,7 @@ public class AgentConfigTests : IDisposable
         Assert.True(AgentConfig.KnownAgents.ContainsKey("opencode"));
         Assert.True(AgentConfig.KnownAgents.ContainsKey("windsurf"));
         Assert.True(AgentConfig.KnownAgents.ContainsKey("agents"));
+        Assert.True(AgentConfig.KnownAgents.ContainsKey("kiro"));
     }
 
     [Fact]
@@ -408,6 +440,8 @@ public class AgentConfigTests : IDisposable
         Assert.True(AgentConfig.KnownAgents.ContainsKey("OpenCode"));
         Assert.True(AgentConfig.KnownAgents.ContainsKey("WindSurf"));
         Assert.True(AgentConfig.KnownAgents.ContainsKey("Agents"));
+        Assert.True(AgentConfig.KnownAgents.ContainsKey("Kiro"));
+        Assert.True(AgentConfig.KnownAgents.ContainsKey("KIRO"));
     }
 
     [Fact]
@@ -475,6 +509,18 @@ public class AgentConfigTests : IDisposable
         Assert.Equal(".agents", def.DetectionDir);
         Assert.Equal(".agents" + Path.DirectorySeparatorChar + "skills", def.SkillsSubPath);
         Assert.Equal(".agents", def.McpSubPath);
+        Assert.Equal("mcp.json", def.McpFileName);
+        Assert.Equal("mcpServers", def.McpRootKey);
+    }
+
+    [Fact]
+    public void KnownAgents_KiroDefinition()
+    {
+        var def = AgentConfig.KnownAgents["kiro"];
+        Assert.Equal("kiro", def.Name);
+        Assert.Equal(".kiro", def.DetectionDir);
+        Assert.Equal(".kiro" + Path.DirectorySeparatorChar + "skills", def.SkillsSubPath);
+        Assert.Equal(".kiro" + Path.DirectorySeparatorChar + "settings", def.McpSubPath);
         Assert.Equal("mcp.json", def.McpFileName);
         Assert.Equal("mcpServers", def.McpRootKey);
     }

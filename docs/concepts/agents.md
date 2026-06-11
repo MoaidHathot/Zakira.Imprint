@@ -10,14 +10,14 @@ permalink: /concepts/agents
 # Multi-Agent Support
 {: .fs-9 }
 
-Target GitHub Copilot, Claude, Cursor, Roo Code, OpenCode, Agents, and more - all at once.
+Target GitHub Copilot, Claude, Cursor, Roo Code, OpenCode, Kiro, Agents, and more - all at once.
 {: .fs-6 .fw-300 }
 
 ---
 
 ## Supported Agents
 
-Imprint has built-in support for seven AI assistants:
+Imprint has built-in support for eight AI assistants:
 
 | Agent | Skills Directory | MCP Config File | MCP Root Key |
 |:------|:-----------------|:----------------|:-------------|
@@ -28,6 +28,7 @@ Imprint has built-in support for seven AI assistants:
 | `opencode` | `.opencode/skills/` | `opencode.json` (project root) | `mcp` |
 | `windsurf` | `.windsurf/rules/` | `windsurf/mcp.json` (project root) | `mcpServers` |
 | `agents` | `.agents/skills/` | `.agents/mcp.json` | `mcpServers` |
+| `kiro` | `.kiro/skills/` | `.kiro/settings/mcp.json` | `mcpServers` |
 
 ### Agent-Specific Conventions
 
@@ -64,6 +65,11 @@ Each AI assistant has its own conventions:
 - MCP config in `.agents/mcp.json`
 - Uses `mcpServers` as the root key in `mcp.json`
 
+**Kiro**
+- Skills in `.kiro/skills/`
+- MCP config in `.kiro/settings/mcp.json` (inside a `settings` subdirectory)
+- Uses `mcpServers` as the root key in `mcp.json`
+
 ---
 
 ## Agent Detection
@@ -77,6 +83,7 @@ Project Directory
 ├── .cursor/         ← Cursor detected
 ├── .roo/            ← Roo Code detected
 ├── .opencode/       ← OpenCode detected
+├── .kiro/           ← Kiro detected
 ├── .agents/         ← Agents detected
 └── MyProject.csproj
 ```
@@ -90,6 +97,7 @@ The detection logic checks for the existence of these directories:
 | `.cursor/` | `cursor` |
 | `.roo/` | `roo` |
 | `.opencode/` | `opencode` |
+| `.kiro/` | `kiro` |
 | `.agents/` | `agents` |
 
 ---
@@ -296,6 +304,18 @@ Each agent may have slightly different MCP configuration formats:
 
 Note: OpenCode combines `command` and `args` into a single `command` array, uses `type: "local"` instead of `type: "stdio"`, and stores its config at the project root (not in a subdirectory).
 
+**Kiro (`.kiro/settings/mcp.json`):**
+```json
+{
+  "mcpServers": {
+    "my-server": {
+      "command": "npx",
+      "args": ["-y", "@my-org/my-server"]
+    }
+  }
+}
+```
+
 Imprint handles these differences automatically when merging MCP fragments.
 
 ---
@@ -319,6 +339,9 @@ mkdir .roo
 
 # Enable OpenCode detection
 mkdir .opencode
+
+# Enable Kiro detection
+mkdir .kiro
 ```
 
 Then run `dotnet build` - Imprint will detect and target those agents.

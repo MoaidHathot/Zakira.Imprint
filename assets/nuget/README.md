@@ -6,11 +6,11 @@
 
 ## Overview
 
-Imprint is a pattern for distributing AI Skills (those `SKILLS.md` files for GitHub Copilot, Claude, Cursor, and other AI assistants) and MCP Server configuration via NuGet packages. When you add an Imprint package to your project:
+Imprint is a pattern for distributing AI Skills (those `SKILLS.md` files for GitHub Copilot, Claude, Cursor, Kiro, and other AI assistants) and MCP Server configuration via NuGet packages. When you add an Imprint package to your project:
 
 1. **On `dotnet build`**: Skills are automatically copied to each AI agent's native directory
 2. **On `dotnet clean`**: Skills are removed (including empty parent directories)
-3. **Multi-agent support**: Targets Copilot, Claude, and Cursor simultaneously — each gets files in its native location (if exists)
+3. **Multi-agent support**: Targets Copilot, Claude, Cursor, Kiro, and more simultaneously — each gets files in its native location (if exists)
 4. **All file types supported**: Not just `.md` — scripts, configs, and any other files in the `skills/` folder are included
 5. **MCP Server Injection**: Packages can inject [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) server configurations into each agent's `mcp.json`
 6. **Code + Skills**: Packages can ship both a compiled DLL library **and** AI skills — consumers get runtime APIs and AI guidance from a single NuGet install
@@ -79,7 +79,7 @@ dotnet build
 # Skills are now at .github/skills/, .claude/skills/, .cursor/rules/ etc.
 ```
 
-Imprint auto-detects which AI agents you use by scanning for their configuration directories (`.github/`, `.claude/`, `.cursor/`). Skills are copied to each detected agent's native location.
+Imprint auto-detects which AI agents you use by scanning for their configuration directories (`.github/`, `.claude/`, `.cursor/`, `.kiro/`, etc.). Skills are copied to each detected agent's native location.
 
 A shared `.gitignore` is automatically generated at `.imprint/.gitignore`, so no manual `.gitignore` configuration is needed.
 
@@ -100,6 +100,7 @@ Imprint includes multi-agent support. Instead of targeting only GitHub Copilot, 
 | `opencode` | `.opencode/` exists | `.opencode/skills/` | `opencode.json` (project root) | `mcp` |
 | `windsurf` | `.windsurf/` exists | `.windsurf/rules/` | `.windsurf/mcp.json` (project root) | `mcpServers` |
 | `agents` | `.agents/` exists | `.agents/skills/` | `.agents/mcp.json` | `mcpServers` |
+| `kiro` | `.kiro/` exists | `.kiro/skills/` | `.kiro/settings/mcp.json` | `mcpServers` |
 
 Unknown agent names fall back to `.{name}/skills/` for skills and `.{name}/mcp.json` for MCP.
 

@@ -350,7 +350,7 @@ Resolves the final list of target agents using priority:
 public static List<string> DetectAgents(string rootDirectory)
 ```
 
-Scans for agent directories (`.github`, `.claude`, `.cursor`, `.roo`, `.opencode`, `.windsurf`, `.agents`) and returns detected agents.
+Scans for agent directories (`.github`, `.claude`, `.cursor`, `.roo`, `.opencode`, `.kiro`, `.windsurf`, `.agents`) and returns detected agents.
 
 #### GetSkillsPath
 
@@ -374,7 +374,7 @@ Returns the absolute MCP config file path for an agent.
 public static string GetMcpRootKey(string agentName)
 ```
 
-Returns the JSON root key for MCP servers (`"servers"` for VS Code, `"mcpServers"` for Claude/Cursor/Roo Code/Windsurf/Agents, `"mcp"` for OpenCode).
+Returns the JSON root key for MCP servers (`"servers"` for VS Code, `"mcpServers"` for Claude/Cursor/Roo Code/Kiro/Windsurf/Agents, `"mcp"` for OpenCode).
 
 ### KnownAgents Dictionary
 
@@ -388,10 +388,10 @@ Contains definitions for known agents with their directory conventions.
 
 ```csharp
 public record AgentDefinition(
-    string Name,           // "copilot", "claude", "cursor", "roo", "opencode", "windsurf"
-    string DetectionDir,   // ".github", ".claude", ".cursor", ".roo", ".opencode", ".windsurf"
-    string SkillsSubPath,  // ".github/skills", ".claude/skills", ".cursor/rules", ".roo/rules", ".opencode/skills", ".windsurf/rules"
-    string McpSubPath,     // ".vscode", ".claude", ".cursor", ".roo", "" (root for opencode), ".windsurf"
+    string Name,           // "copilot", "claude", "cursor", "roo", "opencode", "kiro", "windsurf"
+    string DetectionDir,   // ".github", ".claude", ".cursor", ".roo", ".opencode", ".kiro", ".windsurf"
+    string SkillsSubPath,  // ".github/skills", ".claude/skills", ".cursor/rules", ".kiro/skills", ".windsurf/rules"
+    string McpSubPath,     // ".vscode", ".claude", ".cursor", ".roo", "" (root for opencode), ".kiro/settings", ".windsurf"
     string McpFileName,    // "mcp.json" or "opencode.json"
     string McpRootKey      // "servers", "mcpServers", or "mcp"
 );

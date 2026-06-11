@@ -78,6 +78,7 @@ When enabled, Imprint scans the project directory for existing agent folders:
 - `.cursor/` → Cursor detected
 - `.roo/` → Roo Code detected
 - `.opencode/` → OpenCode detected
+- `.kiro/` → Kiro detected
 - `.windsurf/` → Windsurf detected
 - `.agents/` → Agents detected
 
@@ -98,7 +99,7 @@ Explicitly specifies which agents to target. When set, disables auto-detection.
 | **Type** | String (semicolon-separated) |
 | **Default** | *(empty)* |
 | **Scope** | Consumer projects |
-| **Values** | `copilot`, `claude`, `cursor`, `roo`, `opencode`, `windsurf`, `agents` |
+| **Values** | `copilot`, `claude`, `cursor`, `roo`, `opencode`, `kiro`, `windsurf`, `agents` |
 
 ```xml
 <PropertyGroup>
@@ -122,7 +123,7 @@ Fallback agents when auto-detection finds no existing agent directories.
 ```xml
 <PropertyGroup>
   <!-- Default to all agents if none detected -->
-  <ImprintDefaultAgents>copilot;claude;cursor;roo;opencode;windsurf</ImprintDefaultAgents>
+  <ImprintDefaultAgents>copilot;claude;cursor;roo;opencode;kiro;windsurf</ImprintDefaultAgents>
 </PropertyGroup>
 ```
 
