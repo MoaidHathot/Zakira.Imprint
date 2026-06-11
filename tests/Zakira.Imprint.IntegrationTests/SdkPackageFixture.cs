@@ -43,10 +43,14 @@ public class SdkPackageFixture : IAsyncLifetime
             throw new InvalidOperationException($"Failed to build SDK:\n{buildResult.StandardError}\n{buildResult.StandardOutput}");
         }
 
-        // Pack the SDK
-        var packResult = await RunDotnetAsync("pack", Path.GetDirectoryName(SdkProjectPath)!, 
-            $"-c Release -o \"{PackagesPath}\" --no-build");
-        
+        // Pack the SDK under a unique prerelease version. NuGet's global packages folder caches
+        // an (id, version) pair immutably, so reusing a fixed version would make consumers restore
+        // a stale, previously-cached build of the SDK instead of the one just produced. A unique
+        // version per test run guarantees the freshly built task assembly is always exercised.
+        SdkVersion = $"1.0.3-test-{Guid.NewGuid():N}";
+        var packResult = await RunDotnetAsync("pack", Path.GetDirectoryName(SdkProjectPath)!,
+            $"-c Release -o \"{PackagesPath}\" --no-build -p:PackageVersion={SdkVersion}");
+
         if (packResult.ExitCode != 0)
         {
             throw new InvalidOperationException($"Failed to pack SDK:\n{packResult.StandardError}\n{packResult.StandardOutput}");
@@ -58,13 +62,9 @@ public class SdkPackageFixture : IAsyncLifetime
         {
             throw new InvalidOperationException($"No nupkg file found in {PackagesPath}");
         }
-        
+
         NupkgPath = nupkgFiles[0];
-        
-        // Extract version from filename (e.g., Zakira.Imprint.Sdk.1.0.1-preview.nupkg)
-        var fileName = Path.GetFileNameWithoutExtension(NupkgPath);
-        SdkVersion = fileName.Replace("Zakira.Imprint.Sdk.", "");
-        
+
         Console.WriteLine($"Packed SDK: {NupkgPath}");
         Console.WriteLine($"SDK Version: {SdkVersion}");
     }

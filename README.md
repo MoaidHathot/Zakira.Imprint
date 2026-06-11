@@ -226,7 +226,7 @@ All Imprint skill packages depend on **Zakira.Imprint.Sdk**, which provides the 
    - Else if `ImprintAutoDetectAgents` is true, scan for `.github/`, `.claude/`, `.cursor/`, `.roo/`, `.opencode/`, `.windsurf/` directories
    - Else fall back to `ImprintDefaultAgents`
 
-3. **Content Copy** (`Imprint_CopyContent`): For each resolved agent, copies skill files to the agent's native skills directory. Writes a unified manifest v2 at `.imprint/manifest.json` tracking all files per-agent per-package.
+3. **Content Copy** (`Imprint_CopyContent`): For each resolved agent, copies skill files to the agent's native skills directory. Writes a unified manifest v2 at `.imprint/manifest.json` tracking all files per-agent per-package. These copies and the shared `.gitignore`/manifest writes are safe under parallel, multi-project builds: destinations that already match the source are skipped, and concurrent writers are retried with backoff and reconciled, so building a solution with `-m` will not fail with "file is being used by another process" errors.
 
 4. **MCP Merge** (`Imprint_MergeMcp`): Merges MCP server fragments into each agent's `mcp.json`. Tracks managed server keys in the unified manifest.
 

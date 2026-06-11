@@ -96,6 +96,23 @@ unzip -l bin/Debug/*.nupkg | grep targets
    }
    ```
 
+### Parallel Builds Fail with "being used by another process"
+
+**Symptom:** Building a solution where several projects reference the same skill package fails intermittently with:
+
+```
+IOException: The process cannot access the file '...' because it is being used by another process.
+```
+
+**Cause:** With parallel builds (`dotnet build -m`, which is the default for solutions), every project that shares a repository root resolves to the same agent directory (for example `.github/skills/`). Multiple build processes then race to write the same skill files, the granular `.gitignore` files, and `.imprint/manifest.json`.
+
+**Resolution:** The SDK now handles these shared writes safely, so no project configuration changes are required:
+
+- A destination that already matches the source (size + last-write time) is skipped, so incremental builds do no redundant work.
+- Concurrent writers are retried with a short backoff and reconciled: whichever process wins the race produces the correct file and the others return successfully instead of throwing.
+
+If you still see this error, upgrade to a Zakira.Imprint.Sdk version that includes the safe parallel-write behavior.
+
 ---
 
 ## Restore-Time Issues

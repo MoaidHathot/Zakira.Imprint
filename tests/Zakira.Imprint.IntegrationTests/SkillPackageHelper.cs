@@ -32,7 +32,11 @@ public class SkillPackageHelper
         SkillPackageContent content)
     {
         var packageId = $"TestSkill.{packageName}";
-        var version = "1.0.0";
+        // Use a unique version per pack. The skill package records a dependency on the SDK's
+        // (also unique) version, and NuGet caches an (id, version) pair immutably in the global
+        // packages folder; a fixed version would make consumers restore a stale cached package
+        // that points at a previously built SDK instead of the one under test.
+        var version = $"1.0.0-test-{Guid.NewGuid():N}";
         var projectDir = Path.Combine(testDirectory, $"{packageName}Package");
         Directory.CreateDirectory(projectDir);
 

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Threading;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 
@@ -417,48 +418,112 @@ namespace Zakira.Imprint.Sdk
         {
             foreach (var dirKvp in gitignoreEntries)
             {
-                var directory = dirKvp.Key;
-                var packageFiles = dirKvp.Value;
+                var gitignorePath = Path.Combine(dirKvp.Key, ".gitignore");
+                WriteManagedGitignore(gitignorePath, dirKvp.Value);
+            }
+        }
 
-                var gitignorePath = Path.Combine(directory, ".gitignore");
+        /// <summary>
+        /// Performs the read-merge-write of a single managed .gitignore file, tolerating the
+        /// file contention that occurs during parallel builds (see <see cref="CopyFileSafe"/>).
+        /// Multiple projects sharing a repository root write the same shared .gitignore files,
+        /// so both the read and the write are retried with backoff; the operation converges
+        /// because once a parallel writer wins, the next read sees identical content and the
+        /// write is skipped.
+        /// </summary>
+        private void WriteManagedGitignore(string gitignorePath, Dictionary<string, List<string>> packageFiles)
+        {
+            IOException lastError = null;
 
-                // Read existing gitignore if present
-                var existingContent = File.Exists(gitignorePath) ? File.ReadAllText(gitignorePath) : string.Empty;
-
-                // Parse existing content to preserve non-Imprint entries
-                var (preservedLines, existingManagedSections) = ParseExistingGitignore(existingContent);
-
-                // Build new content
-                var sb = new StringBuilder();
-
-                // Add preserved lines (non-managed content)
-                foreach (var line in preservedLines)
+            for (var attempt = 1; attempt <= MaxCopyAttempts; attempt++)
+            {
+                try
                 {
-                    sb.AppendLine(line);
-                }
+                    // Read existing gitignore if present.
+                    var existingContent = File.Exists(gitignorePath) ? File.ReadAllText(gitignorePath) : string.Empty;
+                    var newContent = BuildManagedGitignoreContent(existingContent, packageFiles);
 
-                // Add managed sections for each package
-                foreach (var pkgKvp in packageFiles.OrderBy(p => p.Key))
-                {
-                    var packageId = pkgKvp.Key;
-                    var files = pkgKvp.Value.OrderBy(f => f).ToList();
-
-                    sb.AppendLine($"{GitignoreHeader} ({packageId})");
-                    foreach (var file in files)
+                    // Only write if content changed (a parallel build may already have written it).
+                    if (newContent.Equals(existingContent))
                     {
-                        sb.AppendLine(file);
+                        return;
                     }
-                }
 
-                var newContent = sb.ToString().TrimEnd() + "\n";
-
-                // Only write if content changed
-                if (!newContent.Equals(existingContent))
-                {
                     File.WriteAllText(gitignorePath, newContent);
                     Log.LogMessage(MessageImportance.Normal,
-                        "Zakira.Imprint.Sdk: Updated .gitignore in {0}", directory);
+                        "Zakira.Imprint.Sdk: Updated .gitignore in {0}", Path.GetDirectoryName(gitignorePath));
+                    return;
                 }
+                catch (IOException ex)
+                {
+                    lastError = ex;
+                    if (attempt < MaxCopyAttempts)
+                    {
+                        Thread.Sleep(GetCopyBackoffMilliseconds(attempt));
+                    }
+                }
+            }
+
+            // Retries exhausted: tolerate the benign case where a parallel build already wrote
+            // the managed entries for every package; otherwise surface the original error.
+            if (!GitignoreContainsPackages(gitignorePath, packageFiles.Keys))
+            {
+                throw lastError;
+            }
+        }
+
+        /// <summary>
+        /// Builds the managed .gitignore content: non-managed lines are preserved, followed by a
+        /// managed section per package.
+        /// </summary>
+        private string BuildManagedGitignoreContent(string existingContent, Dictionary<string, List<string>> packageFiles)
+        {
+            // Parse existing content to preserve non-Imprint entries.
+            var (preservedLines, _) = ParseExistingGitignore(existingContent);
+
+            var sb = new StringBuilder();
+
+            // Add preserved lines (non-managed content).
+            foreach (var line in preservedLines)
+            {
+                sb.AppendLine(line);
+            }
+
+            // Add managed sections for each package.
+            foreach (var pkgKvp in packageFiles.OrderBy(p => p.Key))
+            {
+                var packageId = pkgKvp.Key;
+                var files = pkgKvp.Value.OrderBy(f => f).ToList();
+
+                sb.AppendLine($"{GitignoreHeader} ({packageId})");
+                foreach (var file in files)
+                {
+                    sb.AppendLine(file);
+                }
+            }
+
+            return sb.ToString().TrimEnd() + "\n";
+        }
+
+        /// <summary>
+        /// Checks (tolerating I/O contention) whether the .gitignore already contains a managed
+        /// header for every supplied package.
+        /// </summary>
+        private static bool GitignoreContainsPackages(string gitignorePath, IEnumerable<string> packageIds)
+        {
+            try
+            {
+                if (!File.Exists(gitignorePath))
+                {
+                    return false;
+                }
+
+                var content = File.ReadAllText(gitignorePath);
+                return packageIds.All(id => content.Contains($"{GitignoreHeader} ({id})"));
+            }
+            catch (IOException)
+            {
+                return false;
             }
         }
 
@@ -542,7 +607,7 @@ namespace Zakira.Imprint.Sdk
             var options = GetJsonOptions();
             var content = manifestObj.ToJsonString(options);
             if (!content.EndsWith("\n")) content += "\n";
-            File.WriteAllText(manifestPath, content);
+            WriteAllTextSafe(manifestPath, content);
         }
 
         private static JsonSerializerOptions GetJsonOptions()
@@ -778,31 +843,76 @@ namespace Zakira.Imprint.Sdk
         }
 
         /// <summary>
-        /// Copies a file to the destination, skipping if already identical.
-        /// Handles IOException gracefully for parallel builds where multiple projects
+        /// Maximum number of attempts to copy a contended destination file before giving up.
+        /// </summary>
+        private const int MaxCopyAttempts = 5;
+
+        /// <summary>
+        /// Copies a file to the destination, skipping if already identical, and tolerating
+        /// the file contention that occurs during parallel builds where multiple projects
         /// reference the same package and race to write the same destination file.
         /// </summary>
+        /// <remarks>
+        /// Two complementary strategies are used:
+        /// <list type="number">
+        /// <item><description>
+        /// Skip-if-identical: if the destination already matches the source (size +
+        /// last-write time) no copy is attempted. This eliminates the race entirely on
+        /// incremental builds, where a previous build already produced the file.
+        /// </description></item>
+        /// <item><description>
+        /// Retry-with-recheck: on a clean build, several processes may attempt the very
+        /// first copy at the same time. The OS lets one process win and throws
+        /// <see cref="IOException"/> for the others. Instead of failing - or swallowing the
+        /// error while the winner is still mid-write and the destination is incomplete - we
+        /// retry with a short backoff and re-check identity at the top of every attempt, so a
+        /// "loser" only returns successfully once the winner has produced a complete, matching
+        /// file. The original error is surfaced only if the destination still does not match
+        /// after the final attempt.
+        /// </description></item>
+        /// </list>
+        /// </remarks>
         private static void CopyFileSafe(string sourceFile, string destFile)
         {
-            if (File.Exists(destFile) && FilesAreIdentical(sourceFile, destFile))
+            for (var attempt = 1; ; attempt++)
             {
-                return; // Already up-to-date, skip
-            }
-
-            try
-            {
-                File.Copy(sourceFile, destFile, overwrite: true);
-            }
-            catch (IOException)
-            {
-                // Another parallel build process may have already copied an identical file.
-                // Verify the destination matches the source before swallowing the error.
-                if (!File.Exists(destFile) || !FilesAreIdentical(sourceFile, destFile))
+                // A previous build - or a parallel one that just won the race - may already
+                // have produced an identical file, in which case there is nothing to do.
+                if (File.Exists(destFile) && FilesAreIdentical(sourceFile, destFile))
                 {
+                    return;
+                }
+
+                try
+                {
+                    File.Copy(sourceFile, destFile, overwrite: true);
+                    return;
+                }
+                catch (IOException) when (attempt < MaxCopyAttempts)
+                {
+                    // The destination is locked by another build process racing to write the
+                    // same bytes. Back off and retry; the identity check at the top of the loop
+                    // short-circuits as soon as the winning process finishes.
+                    Thread.Sleep(GetCopyBackoffMilliseconds(attempt));
+                }
+                catch (IOException)
+                {
+                    // Final attempt failed: treat it as success only if the destination now
+                    // matches the source (the winner completed), otherwise surface the error.
+                    if (File.Exists(destFile) && FilesAreIdentical(sourceFile, destFile))
+                    {
+                        return;
+                    }
+
                     throw;
                 }
             }
         }
+
+        /// <summary>
+        /// Exponential backoff (50ms, 100ms, 200ms, 400ms, ...) between contended copy attempts.
+        /// </summary>
+        private static int GetCopyBackoffMilliseconds(int attempt) => 50 * (1 << (attempt - 1));
 
         private static bool FilesAreIdentical(string a, string b)
         {
@@ -812,12 +922,69 @@ namespace Zakira.Imprint.Sdk
                    infoA.LastWriteTimeUtc == infoB.LastWriteTimeUtc;
         }
 
+        /// <summary>
+        /// Writes text to a file, tolerating the file contention that occurs during parallel
+        /// builds where multiple projects share a repository root and write the same shared file
+        /// (e.g. the manifest or an auto-generated .gitignore). Writes are retried with backoff,
+        /// and a write that loses the race but finds the destination already holds the intended
+        /// content is treated as success.
+        /// </summary>
+        private static void WriteAllTextSafe(string path, string contents)
+        {
+            IOException lastError = null;
+
+            for (var attempt = 1; attempt <= MaxCopyAttempts; attempt++)
+            {
+                // Another parallel build may already have written exactly this content.
+                if (FileAlreadyHasText(path, contents))
+                {
+                    return;
+                }
+
+                try
+                {
+                    File.WriteAllText(path, contents);
+                    return;
+                }
+                catch (IOException ex)
+                {
+                    lastError = ex;
+                    if (attempt < MaxCopyAttempts)
+                    {
+                        Thread.Sleep(GetCopyBackoffMilliseconds(attempt));
+                    }
+                }
+            }
+
+            // Retries exhausted: tolerate the benign case where a parallel build already wrote
+            // the same content; otherwise surface the original error.
+            if (!FileAlreadyHasText(path, contents))
+            {
+                throw lastError;
+            }
+        }
+
+        /// <summary>
+        /// Checks (tolerating I/O contention) whether the file already contains exactly the given text.
+        /// </summary>
+        private static bool FileAlreadyHasText(string path, string contents)
+        {
+            try
+            {
+                return File.Exists(path) && File.ReadAllText(path) == contents;
+            }
+            catch (IOException)
+            {
+                return false;
+            }
+        }
+
         private void EnsureImprintGitignore(string imprintDir)
         {
             var gitignorePath = Path.Combine(imprintDir, ".gitignore");
             if (!File.Exists(gitignorePath))
             {
-                File.WriteAllText(gitignorePath, "# Imprint manifests (auto-generated, do not commit)\n*\n");
+                WriteAllTextSafe(gitignorePath, "# Imprint manifests (auto-generated, do not commit)\n*\n");
                 Log.LogMessage(MessageImportance.Normal, "Zakira.Imprint.Sdk: Created {0}", gitignorePath);
             }
         }

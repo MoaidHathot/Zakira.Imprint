@@ -1093,4 +1093,128 @@ public class ImprintCopyContentTests : IDisposable
     }
 
     #endregion
+
+    #region Parallel Build Safety Tests (issue #8)
+
+    private ImprintCopyContent CreateCopilotTask(string src, string packageId = "Pkg")
+    {
+        var destBase = Path.Combine(_destDir, ".github", "skills");
+        return new ImprintCopyContent
+        {
+            BuildEngine = new MockBuildEngine(),
+            ProjectDirectory = _destDir,
+            TargetAgents = "copilot",
+            ContentItems = new ITaskItem[]
+            {
+                CreateContentItem(src, packageId, destBase, _sourceDir)
+            }
+        };
+    }
+
+    [Fact]
+    public void SkipsCopy_WhenDestinationAlreadyIdentical()
+    {
+        // Arrange - first run copies the file to its destination.
+        var src = CreateSourceFile("file.md", "AAAAA");
+        Assert.True(CreateCopilotTask(src).Execute());
+
+        var destFile = Path.Combine(_destDir, ".github", "skills", "file.md");
+        Assert.True(File.Exists(destFile));
+
+        // Tamper with the destination so it has DIFFERENT content but the SAME size and
+        // last-write time as the source. The skip-if-identical heuristic (size + timestamp)
+        // must treat it as up-to-date and NOT overwrite it.
+        var srcLastWriteUtc = File.GetLastWriteTimeUtc(src);
+        File.WriteAllText(destFile, "BBBBB"); // identical length to "AAAAA"
+        File.SetLastWriteTimeUtc(destFile, srcLastWriteUtc);
+
+        // Act - second run should skip the copy entirely.
+        Assert.True(CreateCopilotTask(src).Execute());
+
+        // Assert - the tampered content survives, proving the copy was skipped.
+        Assert.Equal("BBBBB", File.ReadAllText(destFile));
+    }
+
+    [Fact]
+    public void RecopiesFile_WhenSourceContentChanges()
+    {
+        // Arrange - first run copies "original".
+        var src = CreateSourceFile("file.md", "original");
+        Assert.True(CreateCopilotTask(src).Execute());
+
+        var destFile = Path.Combine(_destDir, ".github", "skills", "file.md");
+        Assert.Equal("original", File.ReadAllText(destFile));
+
+        // Change the source so it differs in size from the destination.
+        File.WriteAllText(src, "updated content");
+
+        // Act - second run must detect the difference and re-copy.
+        Assert.True(CreateCopilotTask(src).Execute());
+
+        // Assert
+        Assert.Equal("updated content", File.ReadAllText(destFile));
+    }
+
+    [Fact]
+    public void RetriesAndSucceeds_WhenDestinationTemporarilyLocked()
+    {
+        // Simulates the issue #8 race: another build process holds the destination open
+        // while this task tries to copy. The retry loop must wait it out and succeed.
+
+        // Arrange - pre-create a destination with DIFFERENT size so skip-if-identical does
+        // not short-circuit and the task is forced down the File.Copy (and retry) path.
+        var src = CreateSourceFile("file.md", "hello world"); // 11 bytes
+        var destFile = Path.Combine(_destDir, ".github", "skills", "file.md");
+        Directory.CreateDirectory(Path.GetDirectoryName(destFile)!);
+        File.WriteAllText(destFile, "xxxxx"); // 5 bytes => not identical
+
+        var task = CreateCopilotTask(src);
+
+        // Hold an exclusive lock on the destination, then release it well within the
+        // retry budget (~750ms across 5 attempts) so a later attempt can complete the copy.
+        var lockStream = new FileStream(destFile, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+        var unlocker = new Thread(() =>
+        {
+            Thread.Sleep(120);
+            lockStream.Dispose();
+        });
+        unlocker.Start();
+
+        // Act
+        var result = task.Execute();
+        unlocker.Join();
+
+        // Assert - the copy eventually went through with the source's content.
+        Assert.True(result, "Task should succeed once the destination lock is released");
+        Assert.Equal("hello world", File.ReadAllText(destFile));
+    }
+
+    [Fact]
+    public void Fails_WhenDestinationNeverBecomesAvailable()
+    {
+        // If the destination stays locked and never matches the source, the task must
+        // surface the failure rather than silently swallowing it.
+
+        // Arrange
+        var src = CreateSourceFile("file.md", "hello world"); // 11 bytes
+        var destFile = Path.Combine(_destDir, ".github", "skills", "file.md");
+        Directory.CreateDirectory(Path.GetDirectoryName(destFile)!);
+        File.WriteAllText(destFile, "xxxxx"); // 5 bytes => not identical
+
+        var mockEngine = new MockBuildEngine();
+        var task = CreateCopilotTask(src);
+        task.BuildEngine = mockEngine;
+
+        // Hold the lock for the entire duration of the call (longer than the retry budget).
+        using var lockStream = new FileStream(destFile, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+
+        // Act
+        var result = task.Execute();
+
+        // Assert - Execute catches the exception, logs an error, and reports failure.
+        Assert.False(result, "Task should fail when the destination can never be written");
+        Assert.Contains(mockEngine.Errors, e => e.Contains("Failed to copy content"));
+    }
+
+    #endregion
 }
